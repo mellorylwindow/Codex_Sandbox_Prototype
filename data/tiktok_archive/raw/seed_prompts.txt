@@ -1,3 +1,7 @@
 Prompt: Give me a hook about breaking loops.
 Hook: “This is the moment your old pattern realizes it’s homeless.”
 CTA: Save this and send it to your future self.
+Prompt: 10-second script to explain ADHD time blindness.
+Hook: “If time is soup, mine is alphabet.”
+CTA: Follow for more brain-friendly scripts.
+Idea: explain ADHD like a glitching NPC

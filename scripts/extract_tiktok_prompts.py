@@ -1,107 +1,278 @@
 import csv, json, re
 from pathlib import Path
 
+# ===========================
+# PATH SETUP
+# ===========================
 RAW_DIR = Path("data/tiktok_archive/raw")
 OUT_DIR = Path("data/tiktok_archive/derived")
 OUT_DIR.mkdir(parents=True, exist_ok=True)
+
 OUT_CSV = OUT_DIR / "tiktok_prompts.csv"
+CAT_CSV = OUT_DIR / "tiktok_prompts_categorized.csv"
+DEDUP_FILE = OUT_DIR / "seen_prompts.json"
 
-PROMPT_PATTERNS = [
-    # Lines that begin with a label
-    r'^\s*(?:Prompt|Hook|CTA|Caption)\s*[:\-–]\s*(.+)$',
-    # Markdown bullets that look prompt-y
-    r'^\s*[-*]\s+(?:Prompt|Hook|CTA)\s*[:\-–]\s*(.+)$',
-    # Bare lines in “quote” style
-    r'^\s*["“](.+?)["”]\s*$',
-]
+# ===========================
+# CATEGORY PATTERNS
+# ===========================
+CATEGORY_PATTERNS = {
+    "prompt": [r"^\s*prompt[:\-–]\s*(.+)$"],
+    "hook":   [r"^\s*hook[:\-–]\s*(.+)$"],
+    "cta":    [r"^\s*cta[:\-–]\s*(.+)$"],
+    "script": [r"^\s*script[:\-–]\s*(.+)$"],
+    "idea":   [r"^\s*idea[:\-–]\s*(.+)$"],
+}
 
-compiled = [re.compile(p, re.IGNORECASE) for p in PROMPT_PATTERNS]
-rows = []
+compiled_categories = {
+    cat: [re.compile(p, re.IGNORECASE) for p in pats]
+    for cat, pats in CATEGORY_PATTERNS.items()
+}
 
-def push_row(source, text, kind):
-    text = re.sub(r'\s+', ' ', text).strip()
-    if text:
-        rows.append({"source": source, "type": kind, "text": text})
+# ===========================
+# EMOTIONAL FUNCTION DETECTOR
+# ===========================
+def detect_emotional_function(text, category):
+    t = text.lower()
 
-def from_text(path: Path):
-    for line in path.read_text(encoding="utf-8", errors="ignore").splitlines():
-        for rx in compiled:
+    # explicit category overrides
+    if category == "cta":
+        return "directive"
+    if category == "hook":
+        return "hype"
+    if category == "prompt":
+        return "clarity"
+
+    # pattern-based inference
+    if any(word in t for word in ["deep breath", "pause", "ground", "breathe", "calm"]):
+        return "grounding"
+
+    if any(word in t for word in ["stop", "wait", "listen", "look"]):
+        return "directive"
+
+    if any(word in t for word in ["advice", "explain", "why", "how", "understand"]):
+        return "clarity"
+
+    if any(word in t for word in [" panic", "overwhelm", "can't", "stuck", "freeze"]):
+        return "crisis-regulation"
+
+    if any(word in t for word in ["you're okay", "you got this", "you can", "it's fine"]):
+        return "affirmation"
+
+    if any(word in t for word in ["imagine", "what if", "picture", "visualize"]):
+        return "storytelling"
+
+    if any(word in t for word in ["lol", "lmao", "joke", "funny", "chaos"]):
+        return "humor"
+
+    return "unknown"
+
+# ===========================
+# UTILITY FUNCTIONS
+# ===========================
+def clean_text(text):
+    return re.sub(r'\s+', ' ', text).strip()
+
+def categorize_line(line):
+    for cat, patterns in compiled_categories.items():
+        for rx in patterns:
             m = rx.match(line)
             if m:
-                push_row(str(path), m.group(1), "text")
-                break
+                return cat, clean_text(m.group(1))
+    return None, clean_text(line)
 
-def from_json(path: Path):
-    data = json.loads(path.read_text(encoding="utf-8", errors="ignore"))
-    # Accept JSON or JSONL shapes
-    items = data if isinstance(data, list) else [data]
-    for item in items:
-        # common fields people use
-        for key in ("prompt", "hook", "caption", "script", "idea", "cta"):
-            val = item.get(key)
-            if isinstance(val, str):
-                push_row(str(path), val, key)
+# ===========================
+# EXTRACTION FUNCTIONS
+# ===========================
+def extract_from_text(path):
+    with path.open(encoding="utf-8", errors="ignore") as f:
+        for line in f:
+            line = line.rstrip("\n")
+            cat, content = categorize_line(line)
+            yield {
+                "source": str(path),
+                "category": cat if cat else "unknown",
+                "text": content,
+                "emotion": detect_emotional_function(content, cat if cat else "unknown")
+            }
 
-def from_jsonl(path: Path):
-    for line in path.read_text(encoding="utf-8", errors="ignore").splitlines():
-        line=line.strip()
-        if not line: 
-            continue
-        try:
-            obj = json.loads(line)
-        except Exception:
-            continue
-        for key in ("prompt", "hook", "caption", "script", "idea", "cta"):
-            val = obj.get(key)
-            if isinstance(val, str):
-                push_row(str(path), val, key)
-
-def from_md(path: Path):
-    # scrape fenced code blocks and bullets first, then fall back to generic text scan
-    txt = path.read_text(encoding="utf-8", errors="ignore")
-    # bullets labelled prompt/hook/cta
-    for m in re.finditer(r'^\s*[-*]\s*(?:Prompt|Hook|CTA)[:\-–]\s*(.+)$', txt, flags=re.IGNORECASE|re.MULTILINE):
-        push_row(str(path), m.group(1), "md")
-    # generic text catch-all
-    for line in txt.splitlines():
-        for rx in compiled:
-            mm = rx.match(line)
-            if mm:
-                push_row(str(path), mm.group(1), "md")
-                break
-
-def process_file(path: Path):
-    ext = path.suffix.lower()
-    try:
-        if ext in (".txt",):
-            from_text(path)
-        elif ext in (".md", ".markdown"):
-            from_md(path)
-        elif ext == ".json":
-            from_json(path)
-        elif ext in (".jsonl", ".ndjson"):
-            from_jsonl(path)
-        # else: ignore (images, pdfs, etc.)
-    except Exception as e:
-        push_row(str(path), f"[parse error: {e}]", "error")
-
-def main():
+def extract():
+    rows = []
     for p in RAW_DIR.rglob("*"):
-        if p.is_file():
-            process_file(p)
-    # de-dupe on text
-    seen = set()
-    deduped = []
+        if p.is_file() and p.suffix.lower() in (".txt", ".md", ".json", ".jsonl"):
+            rows.extend(list(extract_from_text(p)))
+    return rows
+
+# ===========================
+# DEDUP + CSV OUTPUT
+# ===========================
+def write_csvs(rows):
+    if DEDUP_FILE.exists():
+        seen_global = set(json.loads(DEDUP_FILE.read_text()))
+    else:
+        seen_global = set()
+
+    seen_run = set()
+    unique = []
+
     for r in rows:
-        key = r["text"]
-        if key not in seen:
-            seen.add(key)
-            deduped.append(r)
+        key = f"{r['category']}::{r['text']}"
+        if key not in seen_global and key not in seen_run:
+            seen_run.add(key)
+            unique.append(r)
+            seen_global.add(key)
+
+    DEDUP_FILE.write_text(json.dumps(list(seen_global), indent=2))
+
     with OUT_CSV.open("w", newline="", encoding="utf-8") as f:
-        w = csv.DictWriter(f, fieldnames=["source","type","text"])
+        w = csv.DictWriter(f, fieldnames=["source", "category", "emotion", "text"])
         w.writeheader()
-        w.writerows(deduped)
-    print(f"Wrote {len(deduped)} prompts -> {OUT_CSV}")
+        w.writerows(unique)
+
+    with CAT_CSV.open("w", newline="", encoding="utf-8") as f:
+        w = csv.DictWriter(f, fieldnames=["category", "emotion", "text", "source"])
+        w.writeheader()
+        for r in unique:
+            w.writerow(r)
+
+    print(f"Added {len(unique)} new prompts")
+    print(f"Memory size now {len(seen_global)} total unique prompts")
+
+    return unique
+
+# ===========================
+# GROUPING / CLUSTERING (simple)
+# ===========================
+def assign_groups(rows):
+    group_counter = 1
+    current_group = f"group_{group_counter:03}"
+
+    for i, r in enumerate(rows):
+        r["group_id"] = current_group
+        if (i + 1) % 5 == 0:  # groups of 5
+            group_counter += 1
+            current_group = f"group_{group_counter:03}"
+
+    return rows
+
+# ===========================
+# AUTOGENERATED SCRIPT BUILDERS
+# ===========================
+def script_from_group(group_id, rows):
+    lines = [f"# {group_id}", ""]
+    for r in rows:
+        lines.append(f"- ({r['emotion']}) {r['text']}")
+    return "\n".join(lines)
+
+def write_autocast(rows):
+    groups = {}
+    for r in rows:
+        gid = r["group_id"]
+        groups.setdefault(gid, []).append(r)
+
+    outpath = OUT_DIR / "autocast_scripts.md"
+    with outpath.open("w", encoding="utf-8") as f:
+        for gid, items in groups.items():
+            f.write(script_from_group(gid, items))
+            f.write("\n\n")
+
+    return groups
+
+def write_quickcast(groups):
+    qp = OUT_DIR / "quickcast.md"
+    with qp.open("w", encoding="utf-8") as f:
+        for gid, script in groups.items():
+            f.write(f"## {gid}\n")
+            for line in script:
+                f.write(f"- {line}\n")
+            f.write("\n")
+
+# ===========================
+# V8: SRT + TELEPROMPTER
+# ===========================
+def seconds_to_timestamp(sec):
+    h = sec // 3600
+    m = (sec % 3600) // 60
+    s = sec % 60
+    return f"{h:02}:{m:02}:{s:02},000"
+
+def generate_srt(script_text):
+    lines = script_text.split("\n")
+    entries = []
+    index = 1
+    t = 0
+
+    for line in lines:
+        if not line.strip():
+            continue
+        start = seconds_to_timestamp(t)
+        end = seconds_to_timestamp(t + 3)
+        entries.append((index, start, end, line))
+        t += 3
+        index += 1
+
+    return entries
+
+def write_srt(entries, path):
+    with path.open("w", encoding="utf-8") as f:
+        for idx, start, end, text in entries:
+            f.write(f"{idx}\n{start} --> {end}\n{text}\n\n")
+
+def write_all_srt(groups_map):
+    srt_dir = OUT_DIR / "srt"
+    srt_dir.mkdir(exist_ok=True)
+    for gid, script in groups_map.items():
+        entries = generate_srt(script)
+        write_srt(entries, srt_dir / f"{gid}.srt")
+
+def write_teleprompter_html(groups_map):
+    tele = OUT_DIR / "teleprompter.html"
+    html = [
+        "<html>",
+        "<head>",
+        "<meta charset='utf-8'>",
+        "<title>Teleprompter</title>",
+        "<style>",
+        "body { background: #000; color: #0f0; font-size: 36px; "
+        "line-height: 1.6; font-family: monospace; padding: 40px; }",
+        "h2 { color: #0ff; font-size: 48px; border-bottom: 2px solid #0ff; }",
+        ".section { margin-bottom: 80px; }",
+        "</style>",
+        "</head>",
+        "<body>",
+        "<h1>TikTok Teleprompter</h1>"
+    ]
+
+    for gid, script in groups_map.items():
+        html.append(f"<div class='section'><h2>{gid}</h2><pre>{script}</pre></div>")
+
+    html.append("</body></html>")
+
+    tele.write_text("\n".join(html), encoding="utf-8")
+
+# ===========================
+# MAIN PIPELINE
+# ===========================
+def main():
+    rows = extract()
+    unique = write_csvs(rows)
+    grouped = assign_groups(unique)
+
+    # Autocast generation
+    groups_raw = {}
+    for r in grouped:
+        groups_raw.setdefault(r["group_id"], []).append(r)
+
+    # Build clean group scripts
+    groups_text = {gid: script_from_group(gid, rows) for gid, rows in groups_raw.items()}
+
+    # Write outputs
+    write_all_srt(groups_text)
+    write_teleprompter_html(groups_text)
+
+    print("✅ SRT written")
+    print("✅ Teleprompter written")
+    print(f"✅ Done: {len(groups_text)} groups processed")
+
 
 if __name__ == "__main__":
     main()

@@ -1,7 +1,1 @@
-source,type,text
-data\tiktok_archive\raw\seed_prompts.txt,text,Give me a hook about breaking loops.
-data\tiktok_archive\raw\seed_prompts.txt,text,“This is the moment your old pattern realizes it’s homeless.”
-data\tiktok_archive\raw\seed_prompts.txt,text,Save this and send it to your future self.
-data\tiktok_archive\raw\seed_prompts.txt,text,10-second script to explain ADHD time blindness.
-data\tiktok_archive\raw\seed_prompts.txt,text,"“If time is soup, mine is alphabet.”"
-data\tiktok_archive\raw\seed_prompts.txt,text,Follow for more brain-friendly scripts.
+source,category,emotion,text
