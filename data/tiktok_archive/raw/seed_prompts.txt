@@ -1,0 +1,3 @@
+Prompt: Give me a hook about breaking loops.
+Hook: “This is the moment your old pattern realizes it’s homeless.”
+CTA: Save this and send it to your future self.
