@@ -1,0 +1,164 @@
+{
+  "library_name": "VelvetConsole_PromptDeck_V1",
+  "description": "Master library of AI prompt cards for productivity, marketing, sales, finance, and learning.",
+  "version": "1.0.0",
+  "categories": {
+    "Operations & Productivity": [
+      {
+        "id": "OP001",
+        "title": "Daily Operations Manager",
+        "purpose": "Automate recurring work and build daily rhythm.",
+        "prompt": "Act as my operations manager for my [business/job role]. Handle all repetitive tasks like [reports, emails, summaries, etc.]. Create a simple daily system that completes each with precision, consistency, and minimal input from me.",
+        "quick_start": "Use this when you want ChatGPT to design a loop system for your daily workflow."
+      },
+      {
+        "id": "OP002",
+        "title": "Personal Time-Saver",
+        "purpose": "Collapse wasted hours into focused minutes.",
+        "prompt": "Act like a personal productivity optimizer. I waste time on [tasks]. Build a personalized 3-step plan to complete them faster, automate what can be delegated, and delete what doesn’t require my attention.",
+        "quick_start": "Use after a time audit to refactor your daily habits."
+      },
+      {
+        "id": "OP003",
+        "title": "Smart Email Assistant",
+        "purpose": "Instantly polish or template your inbox replies.",
+        "prompt": "You are my email executive for [industry/niche]. Create reply and outreach templates for clients, follow-ups, and complaints. Keep the tone smart, polite, and efficient.",
+        "quick_start": "Use this to generate reusable drafts or tone-consistent replies."
+      },
+      {
+        "id": "OP004",
+        "title": "Full-Time Personal Assistant",
+        "purpose": "Morning command center.",
+        "prompt": "Each morning at 8 AM, generate my daily brief: Calendar summary, 3 priority tasks, 2 learning insights in [topic], and 1 motivational quote. Make it concise, focused, and high-ROI.",
+        "quick_start": "Drop this in a daily ChatGPT thread or automation shortcut."
+      },
+      {
+        "id": "OP005",
+        "title": "Business Automation Consultant",
+        "purpose": "Detect and automate repetitive tasks.",
+        "prompt": "Analyze my current workflow in [role/business]. Identify every repetitive or low-value task. Suggest specific ChatGPT-based automations, including templates for email, reports, SOPs, or documentation.",
+        "quick_start": "Run this monthly to build an automation backlog."
+      }
+    ],
+    "Marketing & Branding": [
+      {
+        "id": "MB006",
+        "title": "Social Media Content Machine",
+        "purpose": "Plan 7 days of viral-ready content.",
+        "prompt": "Act as a content expert in [niche]. Plan 7 days of posts for [platforms]. Include hooks, captions, visuals, and CTAs using proven psychological triggers.",
+        "quick_start": "Batch-create content before a launch or event."
+      },
+      {
+        "id": "MB007",
+        "title": "End-to-End Marketing Engine",
+        "purpose": "Full-funnel marketing system.",
+        "prompt": "You’re my Head of Marketing. Based on my product/service in [niche], build a complete funnel: offer positioning, landing page copy, ad scripts, email flows, social content, and tracking metrics. Keep it launch-ready.",
+        "quick_start": "Use for offer creation or rebranding cycles."
+      },
+      {
+        "id": "MB008",
+        "title": "Personal Branding Architect",
+        "purpose": "Build your public identity system.",
+        "prompt": "Design a 30-day personal branding blueprint for [field]. Include post topics, engagement strategies, content loops, and viral hook ideas across LinkedIn, Instagram, and Twitter.",
+        "quick_start": "Use quarterly to refresh your online presence."
+      },
+      {
+        "id": "MB009",
+        "title": "Content Studio + Repurposing",
+        "purpose": "Multiply one idea across platforms.",
+        "prompt": "Create a full content system for [topic]. Draft a master script, captions, email newsletter, and blog post. Then repurpose into short-form variations for Twitter, Reels, LinkedIn, TikTok, and YouTube Shorts.",
+        "quick_start": "Feed it one main essay or transcript to generate multiple outputs."
+      }
+    ],
+    "Sales & Client Ops": [
+      {
+        "id": "SC010",
+        "title": "Business Research Analyst",
+        "purpose": "Gain real-time competitive intelligence.",
+        "prompt": "Act as my research analyst for [industry/niche]. Find competitor strategies, pricing, and opportunities. Deliver 3 actionable insights I can use today for an edge.",
+        "quick_start": "Run monthly as a market radar refresh."
+      },
+      {
+        "id": "SC011",
+        "title": "Client Closer",
+        "purpose": "Automate client follow-ups.",
+        "prompt": "Act like a deal closer for [business/service]. Create a high-conversion follow-up sequence for email, DM, and calls to turn warm leads into clients.",
+        "quick_start": "Use this to generate automated client follow-up sequences."
+      },
+      {
+        "id": "SC012",
+        "title": "High-Ticket Sales Closer",
+        "purpose": "Handle objections like a pro.",
+        "prompt": "I offer [product/service]. Create objection-handling scripts, qualifying questions, and follow-up frameworks that help close 5-figure clients consistently.",
+        "quick_start": "Use to train your own sales tone or integrate into CRM automation."
+      },
+      {
+        "id": "SC013",
+        "title": "Proposal & Report Generator",
+        "purpose": "Generate clean documentation fast.",
+        "prompt": "Act as my documentation lead. Generate polished proposals, weekly reports, and SOPs for [business/job]. Output as a reusable template.",
+        "quick_start": "Run this when you need a clean, pro-formatted report."
+      }
+    ],
+    "Finance & Debt Systems": [
+      {
+        "id": "FD014",
+        "title": "Debt Snapshot",
+        "purpose": "Visualize what’s owed.",
+        "prompt": "My debts: [lender | balance | APR | min payment | due date | status]. Build a table sorted by APR, show totals, and highlight top 3 cost drivers.",
+        "quick_start": "Use this as a foundation for payoff planning."
+      },
+      {
+        "id": "FD015",
+        "title": "Payoff Plan (Avalanche vs Snowball)",
+        "purpose": "Design debt freedom roadmap.",
+        "prompt": "I can pay an extra [$X] monthly starting [YYYY-MM-DD]. Create both Avalanche and Snowball payoff plans, with interest saved and timeline table. Recommend which to follow.",
+        "quick_start": "Use for goal-based debt elimination tracking."
+      },
+      {
+        "id": "FD016",
+        "title": "Negotiation Scripts",
+        "purpose": "Talk your way into lower rates.",
+        "prompt": "For each lender [list], write a 150-word script to request rate reduction or hardship assistance. Include backup phrases if they push back and confirm key points.",
+        "quick_start": "Run before calling lenders for better terms."
+      },
+      {
+        "id": "FD017",
+        "title": "Balance Transfer / Refi Check",
+        "purpose": "Compare debt moves.",
+        "prompt": "Offer: promo APR [%] for [months], transfer fee [%]. Compare staying vs transferring for debts [IDs], show breakeven month, cost difference, and Go/No-Go verdict.",
+        "quick_start": "Helps you decide if a balance transfer is worth it."
+      },
+      {
+        "id": "FD018",
+        "title": "Cashflow Guardrails",
+        "purpose": "Build your autopay map.",
+        "prompt": "Income [$], fixed bills [$], variable avg [$]. Build a zero-based budget with 3-day early autopays and surplus allocation to highest APR. Return one-page budget + calendar.",
+        "quick_start": "Creates a visual cashflow strategy with autopay order."
+      },
+      {
+        "id": "FD019",
+        "title": "Collections & Disputes",
+        "purpose": "Clean up your credit report.",
+        "prompt": "Accounts in collections: [list]. Draft debt validation letters, call scripts, and a dispute timeline checklist.",
+        "quick_start": "Use for organizing your credit repair plan."
+      },
+      {
+        "id": "FD020",
+        "title": "Credit Score Lift",
+        "purpose": "Improve credit in 60 days.",
+        "prompt": "Cards: [list with limits]. Create utilization targets (< X % overall, < Y % per card), recommend payment tweaks and a 60-day credit improvement plan.",
+        "quick_start": "Use before major financing or mortgage applications."
+      }
+    ],
+    "Learning & Development": [
+      {
+        "id": "LD021",
+        "title": "Hyper-Effective Learning",
+        "purpose": "Master anything in 30 days.",
+        "prompt": "Act as my learning coach. I want to master [topic/skill] in 30 days. Create a micro-lesson plan with quizzes, assignments, and real-world practice. Track and adjust based on progress.",
+        "quick_start": "Use for structured self-study with built-in feedback."
+      }
+    ]
+  }
+}
