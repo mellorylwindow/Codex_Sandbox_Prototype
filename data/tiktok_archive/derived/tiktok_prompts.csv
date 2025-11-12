@@ -1,1 +1,1 @@
-source,category,emotion,text
+source,category,emotion,cluster,sentiment,sentiment_score,keywords,title,group_id,text
