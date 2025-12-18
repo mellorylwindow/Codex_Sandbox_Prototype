@@ -111,6 +111,10 @@ def _tail_lines(path: Path, n: int) -> List[str]:
 
     return lines[-n:]
 
+def _cmd_list() -> int:
+    for name in sorted(AGENT_REGISTRY.keys()):
+        print(name)
+    return 0
 
 def _cmd_log_tail(tail: int) -> int:
     """
@@ -143,6 +147,8 @@ def main() -> int:
     # log command
     log_parser = subparsers.add_parser("log", help="Inspect agent run logs")
     log_parser.add_argument("--tail", type=int, default=20, help="Print last N log lines (default: 20)")
+    list_parser = subparsers.add_parser("list", help="List available agents")
+
 
     # default: run agent
     parser.add_argument("agent", nargs="?", help=f"Agent name. Options: {', '.join(AGENT_REGISTRY)}")
@@ -168,6 +174,9 @@ def main() -> int:
     # Handle subcommand: log
     if args.cmd == "log":
         return _cmd_log_tail(args.tail)
+    
+    if args.cmd == "list":
+        return _cmd_list()
 
     # Otherwise: run an agent
     if not args.agent:
