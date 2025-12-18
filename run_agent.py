@@ -4,15 +4,25 @@ import argparse
 import json
 import os
 import sys
+from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any, Dict
 
 from agents.contracts import AgentContext, AgentResult
 from agents.hello_agent import HelloAgent
 
+# ---------------------------------------------------------------------
+# Registry (sandbox-simple)
+# ---------------------------------------------------------------------
 
 AGENT_REGISTRY = {
     "hello": HelloAgent(),
 }
+
+
+# ---------------------------------------------------------------------
+# Core helpers
+# ---------------------------------------------------------------------
 
 
 def _repo_root() -> str:
@@ -46,29 +56,77 @@ def _parse_input_json(input_json: str) -> Dict[str, Any]:
     return parsed
 
 
+def _append_ndjson_log(*, agent: str, payload: Dict[str, Any], result: AgentResult) -> None:
+    """
+    Append a single NDJSON event line to notes/agent_runs.ndjson.
+
+    We log:
+      - ts (UTC ISO)
+      - agent name
+      - payload (as provided to agent)
+      - ok/summary/data (agent result)
+    """
+    log_path = Path(_repo_root()) / "notes" / "agent_runs.ndjson"
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+
+    event = {
+        "ts": datetime.now(timezone.utc).isoformat(),
+        "agent": agent,
+        "payload": payload,
+        "ok": result.ok,
+        "summary": result.summary,
+        "data": result.data,
+    }
+
+    with log_path.open("a", encoding="utf-8") as f:
+        f.write(json.dumps(event, ensure_ascii=False) + "\n")
+
+
+# ---------------------------------------------------------------------
+# CLI
+# ---------------------------------------------------------------------
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Codex Sandbox Agent Runner")
     parser.add_argument("agent", help=f"Agent name. Options: {', '.join(AGENT_REGISTRY)}")
-    parser.add_argument("--name", default="friend", help="Convenience input (used if payload has no name)")
-    parser.add_argument("--json", action="store_true", help="Print full JSON result")
+
+    parser.add_argument(
+        "--name",
+        default="friend",
+        help="Convenience input (used if payload has no name)",
+    )
     parser.add_argument(
         "--input",
         dest="input_json",
         help="JSON object payload (e.g. '{\"name\":\"Jimmy\"}')",
     )
 
+    parser.add_argument("--json", action="store_true", help="Print full JSON result")
+    parser.add_argument(
+        "--no-log",
+        action="store_true",
+        help="Disable NDJSON run logging to notes/agent_runs.ndjson",
+    )
+
     args = parser.parse_args()
 
+    # Build payload
     payload: Dict[str, Any] = {}
-
     if args.input_json:
         payload.update(_parse_input_json(args.input_json))
 
-    # Default name if not provided in JSON payload
+    # Default/fallback name if not provided in JSON payload
     payload.setdefault("name", args.name)
 
+    # Run
     result = run_agent(args.agent, payload)
 
+    # Log (default ON)
+    if not args.no_log:
+        _append_ndjson_log(agent=args.agent, payload=payload, result=result)
+
+    # Output
     if args.json:
         print(json.dumps(result.__dict__, indent=2))
     else:
