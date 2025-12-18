@@ -210,3 +210,12 @@ __marimo__/
 # scribe outputs
 scribe/output/
 scribe/tmp/
+
+# --- Scribe ---
+scribe/input/
+scribe/output/
+scribe/tmp/
+*.mp4
+*.wav
+*.png
+*.pdf
