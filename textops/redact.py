@@ -1,8 +1,9 @@
+# textops/redact.py
 from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-from typing import Iterable, List, Literal, Tuple
+from typing import Any, Dict, Iterable, List, Literal, Optional, Tuple
 
 RedactLevel = Literal["light", "standard", "heavy"]
 
@@ -15,7 +16,28 @@ class RedactionHit:
     end: int
 
 
-# --- Core patterns (offline, deterministic) ---
+@dataclass(frozen=True)
+class CustomPattern:
+    """
+    User-supplied regex redaction rule (offline).
+
+    Fields:
+      - label (required): used for audit + default replacement token
+      - regex (required): regex pattern string
+      - replace (optional): replacement text. If omitted, defaults to f"[{label}]"
+      - min_level (optional): only apply when requested level >= min_level
+      - flags (optional): compiled re flags (IGNORECASE/MULTILINE/DOTALL)
+    """
+    label: str
+    regex: str
+    replace: Optional[str] = None
+    min_level: Optional[RedactLevel] = None
+    flags: int = 0
+
+
+# -----------------------------
+# Built-in patterns (offline)
+# -----------------------------
 
 EMAIL_RE = re.compile(r"\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b", re.IGNORECASE)
 
@@ -34,16 +56,13 @@ PHONE_RE = re.compile(
     re.VERBOSE,
 )
 
-# SSN
 SSN_RE = re.compile(r"\b\d{3}-\d{2}-\d{4}\b")
 
 # Credit card-ish (very rough): 13-19 digits with spaces/dashes
 CC_RE = re.compile(r"\b(?:\d[ -]*?){13,19}\b")
 
-# US ZIP / ZIP+4
 ZIP_RE = re.compile(r"\b\d{5}(?:-\d{4})?\b")
 
-# Simple street address heuristic: "123 Main St", "45 Elm Road", etc.
 ADDRESS_RE = re.compile(
     r"""
     \b
@@ -69,29 +88,46 @@ DATE_WORD_RE = re.compile(
 # "My name is X" heuristic (standard+)
 MY_NAME_IS_RE = re.compile(r"\bmy name is\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,2})\b", re.IGNORECASE)
 
-# Very conservative "full name" heuristic: Two Capitalized Words (can false-positive)
+# Conservative "First Last" matcher used only in heavy
 FULLNAME_RE = re.compile(r"\b([A-Z][a-z]+)\s+([A-Z][a-z]+)\b")
 
 
+# -----------------------------
+# Helpers
+# -----------------------------
+
+
+def _level_rank(level: RedactLevel) -> int:
+    return {"light": 1, "standard": 2, "heavy": 3}[level]
+
+
 def _apply_regex(text: str, pattern: re.Pattern, label: str, replace_with: str) -> Tuple[str, List[RedactionHit]]:
+    """
+    Apply a regex replacement while collecting hit metadata.
+
+    Note: indices refer to the pre-replacement text. For auditing this is fine.
+    """
     hits: List[RedactionHit] = []
-    out = []
+    out_parts: List[str] = []
     last = 0
 
     for m in pattern.finditer(text):
         start, end = m.span()
         hits.append(RedactionHit(label=label, match=m.group(0), start=start, end=end))
-        out.append(text[last:start])
-        out.append(replace_with)
+        out_parts.append(text[last:start])
+        out_parts.append(replace_with)
         last = end
 
-    out.append(text[last:])
-    return "".join(out), hits
+    out_parts.append(text[last:])
+    return "".join(out_parts), hits
 
 
 def _redact_exact_terms(text: str, terms: Iterable[str], label: str) -> Tuple[str, List[RedactionHit]]:
     """
     Redact caller-provided terms (names, orgs, etc) case-insensitively.
+
+    This is high precision (only exact matches), and works well when you maintain
+    a curated terms file.
     """
     hits: List[RedactionHit] = []
     terms_clean = [t.strip() for t in terms if t and t.strip()]
@@ -101,14 +137,119 @@ def _redact_exact_terms(text: str, terms: Iterable[str], label: str) -> Tuple[st
     # Sort longer first to avoid partial masking issues
     terms_clean.sort(key=len, reverse=True)
 
+    out = text
     for term in terms_clean:
-        # word boundary where possible; allow spaces inside term
         escaped = re.escape(term)
         pat = re.compile(rf"(?i)\b{escaped}\b")
-        text, new_hits = _apply_regex(text, pat, label=label, replace_with=f"[{label}]")
+        out, new_hits = _apply_regex(out, pat, label=label, replace_with=f"[{label}]")
         hits.extend(new_hits)
 
-    return text, hits
+    return out, hits
+
+
+def _parse_flags(flag_names: Iterable[str]) -> int:
+    mapping = {
+        "IGNORECASE": re.IGNORECASE,
+        "I": re.IGNORECASE,
+        "MULTILINE": re.MULTILINE,
+        "M": re.MULTILINE,
+        "DOTALL": re.DOTALL,
+        "S": re.DOTALL,
+    }
+    flags = 0
+    for name in flag_names:
+        key = (name or "").strip().upper()
+        if not key:
+            continue
+        if key not in mapping:
+            raise ValueError(f"Unsupported regex flag: {name!r}. Allowed: IGNORECASE, MULTILINE, DOTALL")
+        flags |= mapping[key]
+    return flags
+
+
+def compile_custom_patterns(raw_patterns: Iterable[Dict[str, Any]]) -> List[CustomPattern]:
+    """
+    Convert JSON-friendly dict rules into CustomPattern objects.
+
+    Each pattern dict supports:
+      - label (required)
+      - regex (required)
+      - replace (optional) -> literal replacement string
+      - min_level (optional) -> light|standard|heavy
+      - flags (optional) -> list[str]: IGNORECASE/MULTILINE/DOTALL (or I/M/S)
+    """
+    compiled: List[CustomPattern] = []
+    for i, p in enumerate(raw_patterns):
+        if not isinstance(p, dict):
+            raise ValueError(f"Pattern at index {i} must be an object/dict.")
+
+        label = (p.get("label") or "").strip()
+        regex_s = (p.get("regex") or "").strip()
+        replace = p.get("replace", None)
+        min_level = p.get("min_level", None)
+        flags_raw = p.get("flags", [])
+
+        if not label:
+            raise ValueError(f"Pattern at index {i} missing required 'label'.")
+        if not regex_s:
+            raise ValueError(f"Pattern at index {i} missing required 'regex'.")
+
+        if replace is not None and not isinstance(replace, str):
+            raise ValueError(f"Pattern at index {i} 'replace' must be a string if provided.")
+
+        if min_level is not None:
+            if min_level not in ("light", "standard", "heavy"):
+                raise ValueError(f"Pattern at index {i} 'min_level' must be one of: light|standard|heavy.")
+
+        if flags_raw is None:
+            flags_raw = []
+        if not isinstance(flags_raw, list) or any(not isinstance(x, str) for x in flags_raw):
+            raise ValueError(f"Pattern at index {i} 'flags' must be a list of strings.")
+
+        flags = _parse_flags(flags_raw)
+
+        # Validate regex compiles
+        try:
+            re.compile(regex_s, flags)
+        except re.error as e:
+            raise ValueError(f"Pattern at index {i} has invalid regex: {e}") from e
+
+        compiled.append(
+            CustomPattern(
+                label=label,
+                regex=regex_s,
+                replace=replace,
+                min_level=min_level,
+                flags=flags,
+            )
+        )
+
+    return compiled
+
+
+def _apply_custom_patterns(
+    text: str,
+    patterns: Iterable[CustomPattern],
+    level: RedactLevel,
+) -> Tuple[str, List[RedactionHit]]:
+    hits: List[RedactionHit] = []
+    out = text
+
+    for pat in patterns:
+        if pat.min_level is not None and _level_rank(level) < _level_rank(pat.min_level):
+            continue
+
+        replace_with = pat.replace if pat.replace is not None else f"[{pat.label}]"
+        rx = re.compile(pat.regex, pat.flags)
+        out, h = _apply_regex(out, rx, pat.label, replace_with)
+        hits.extend(h)
+
+    return out, hits
+
+
+# -----------------------------
+# Public API
+# -----------------------------
 
 
 def redact_text(
@@ -118,19 +259,32 @@ def redact_text(
     redact_names: Iterable[str] = (),
     redact_orgs: Iterable[str] = (),
     redact_locations: Iterable[str] = (),
+    patterns: Iterable[CustomPattern] = (),
 ) -> Tuple[str, List[RedactionHit]]:
     """
-    Offline redaction:
-      - light: email/phone/ssn/cc/address/zip
-      - standard: + dates + "my name is X" + caller-provided names/orgs/locations
-      - heavy: + aggressive digit masking + conservative full-name masking (can false-positive)
+    Offline redaction (deterministic):
 
-    Returns (redacted_text, hits).
+      - light:
+          EMAIL, PHONE, SSN, CARD, ADDRESS
+
+      - standard:
+          + ZIP, DATE (numeric + word), "my name is X" heuristic,
+          + caller-provided NAME/ORG/LOCATION exact terms,
+          + custom patterns
+
+      - heavy:
+          + standard
+          + mask long digit runs (4+)
+          + conservative full-name masking (can false-positive)
+          + custom patterns (also applied)
+
+    Returns:
+      (redacted_text, hits)
     """
     hits_all: List[RedactionHit] = []
     out = text
 
-    # Always-on basics
+    # Always-on basics (high confidence)
     out, h = _apply_regex(out, EMAIL_RE, "EMAIL", "[EMAIL]")
     hits_all.extend(h)
 
@@ -146,7 +300,6 @@ def redact_text(
     out, h = _apply_regex(out, ADDRESS_RE, "ADDRESS", "[ADDRESS]")
     hits_all.extend(h)
 
-    # ZIP alone is weakly identifying; redact only standard+
     if level in ("standard", "heavy"):
         out, h = _apply_regex(out, ZIP_RE, "ZIP", "[ZIP]")
         hits_all.extend(h)
@@ -158,17 +311,13 @@ def redact_text(
         hits_all.extend(h)
 
         # "My name is X" heuristic
-        def _name_replacer(m: re.Match) -> str:
-            # keep "my name is" phrase, replace name
-            return re.sub(m.group(1), "[NAME]", m.group(0), flags=re.IGNORECASE)
-
-        # Use sub with manual hit capture
         for m in MY_NAME_IS_RE.finditer(out):
             start, end = m.span(1)
             hits_all.append(RedactionHit(label="NAME", match=m.group(1), start=start, end=end))
+
         out = MY_NAME_IS_RE.sub(lambda m: re.sub(re.escape(m.group(1)), "[NAME]", m.group(0)), out)
 
-        # Caller-provided lists (high precision)
+        # Caller-provided exact matches
         out, h = _redact_exact_terms(out, redact_names, "NAME")
         hits_all.extend(h)
 
@@ -178,16 +327,17 @@ def redact_text(
         out, h = _redact_exact_terms(out, redact_locations, "LOCATION")
         hits_all.extend(h)
 
+    # Apply custom patterns after baseline redactions, before heavy-mode aggressiveness.
+    out, h = _apply_custom_patterns(out, patterns, level)
+    hits_all.extend(h)
+
     if level == "heavy":
         # Mask long digit sequences (account numbers, ids, etc.)
-        # Replace any run of 4+ digits with [NUM]
         long_digits = re.compile(r"\b\d{4,}\b")
         out, h = _apply_regex(out, long_digits, "NUM", "[NUM]")
         hits_all.extend(h)
 
         # Conservative full-name masking (false positives possible)
-        # Mask "First Last" where both are capitalized.
-        # Only do this in heavy mode.
         def _full_name_sub(m: re.Match) -> str:
             full = m.group(0)
             hits_all.append(RedactionHit(label="NAME", match=full, start=m.start(), end=m.end()))

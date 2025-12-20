@@ -1,0 +1,48 @@
+{
+  "redact": {
+    "names": [
+      "Jimmy Swain",
+      "Carolynn",
+      "Mallow Stone",
+      "Angel"
+    ],
+    "orgs": [
+      "Border States",
+      "Dominion Electric"
+    ],
+    "locations": [
+      "Silver Spring",
+      "Arlington National Cemetery"
+    ],
+    "patterns": [
+      {
+        "label": "EMAIL",
+        "regex": "\\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}\\b",
+        "flags": ["IGNORECASE"]
+      },
+      {
+        "label": "PHONE",
+        "regex": "\\b(?:\\+?1[-.\\s]?)?(?:\\(\\d{3}\\)|\\d{3})[-.\\s]?\\d{3}[-.\\s]?\\d{4}\\b"
+      },
+      {
+        "label": "SSN",
+        "regex": "\\b\\d{3}-\\d{2}-\\d{4}\\b"
+      },
+      {
+        "label": "DATE",
+        "regex": "\\b(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\\s+\\d{1,2},\\s+\\d{4}\\b",
+        "flags": ["IGNORECASE"]
+      },
+      {
+        "label": "AGE",
+        "regex": "\\b\\d{1,3}\\s*(?:years?\\s*old|yo)\\b",
+        "flags": ["IGNORECASE"]
+      },
+      {
+        "label": "WEIGHT",
+        "regex": "\\b\\d{2,3}\\s*(?:lb|lbs|pounds)\\b",
+        "flags": ["IGNORECASE"]
+      }
+    ]
+  }
+}

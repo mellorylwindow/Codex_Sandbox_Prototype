@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "replacements": [
+    {
+      "from": "Duran Iran",
+      "to": "Duran Duran",
+      "whole_word": false,
+      "case_sensitive": false
+    },
+    {
+      "from": "Gismo",
+      "to": "Gizmo",
+      "whole_word": true,
+      "case_sensitive": false
+    }
+  ]
+}

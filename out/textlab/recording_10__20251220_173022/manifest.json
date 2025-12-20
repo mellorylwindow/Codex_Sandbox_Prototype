@@ -1,0 +1,27 @@
+{
+  "started_at": "2025-12-20T17:30:22",
+  "input_path": "C:\\Users\\naked\\GitHub\\Codex_Sandbox_Prototype\\out\\transcripts\\recording_10__20251220_155127.txt",
+  "work_dir": "C:\\Users\\naked\\GitHub\\Codex_Sandbox_Prototype\\out\\textlab\\recording_10__20251220_173022",
+  "base": "recording_10",
+  "options": {
+    "clean": true,
+    "clean_mode": "standard",
+    "post_fix": "notes\\corrections.json",
+    "redact": "standard",
+    "terms": "notes\\redaction_terms.json",
+    "report": false,
+    "chunk_mode": "minutes:5"
+  },
+  "outputs": {
+    "prepared_txt": "C:\\Users\\naked\\GitHub\\Codex_Sandbox_Prototype\\out\\textlab\\recording_10__20251220_173022\\stage\\04.redacted.txt",
+    "chunks_dir": "C:\\Users\\naked\\GitHub\\Codex_Sandbox_Prototype\\out\\textlab\\recording_10__20251220_173022\\chunks",
+    "chunk_meta_dir": "C:\\Users\\naked\\GitHub\\Codex_Sandbox_Prototype\\out\\textlab\\recording_10__20251220_173022\\chunk_meta",
+    "toc": "C:\\Users\\naked\\GitHub\\Codex_Sandbox_Prototype\\out\\textlab\\recording_10__20251220_173022\\TOC.md",
+    "manifest": "C:\\Users\\naked\\GitHub\\Codex_Sandbox_Prototype\\out\\textlab\\recording_10__20251220_173022\\manifest.json",
+    "stage_dir": "C:\\Users\\naked\\GitHub\\Codex_Sandbox_Prototype\\out\\textlab\\recording_10__20251220_173022\\stage",
+    "outline": "C:\\Users\\naked\\GitHub\\Codex_Sandbox_Prototype\\out\\textlab\\recording_10__20251220_173022\\outline.txt",
+    "keywords": "C:\\Users\\naked\\GitHub\\Codex_Sandbox_Prototype\\out\\textlab\\recording_10__20251220_173022\\keywords.txt",
+    "entities": "C:\\Users\\naked\\GitHub\\Codex_Sandbox_Prototype\\out\\textlab\\recording_10__20251220_173022\\entities.txt",
+    "summary_extractive": "C:\\Users\\naked\\GitHub\\Codex_Sandbox_Prototype\\out\\textlab\\recording_10__20251220_173022\\summary_extractive.txt"
+  }
+}
