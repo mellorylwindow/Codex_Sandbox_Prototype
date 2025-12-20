@@ -219,3 +219,10 @@ scribe/tmp/
 *.wav
 *.png
 *.pdf
+
+# Media inputs (keep local)
+notes/media_in/
+out/transcripts/
+
+# TextOps outputs (keep local)
+out/textops/
