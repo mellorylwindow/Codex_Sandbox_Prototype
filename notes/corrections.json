@@ -12,6 +12,12 @@
       "to": "Gizmo",
       "whole_word": true,
       "case_sensitive": false
+    },
+    {
+      "from": "Carolyn",
+      "to": "Carolynn",
+      "whole_word": true,
+      "case_sensitive": false
     }
   ]
 }
