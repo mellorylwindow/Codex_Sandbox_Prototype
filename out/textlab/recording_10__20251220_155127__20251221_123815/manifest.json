@@ -1,0 +1,30 @@
+{
+  "source": "C:\\Users\\naked\\GitHub\\Codex_Sandbox_Prototype\\out\\transcripts\\recording_10__20251220_155127.txt",
+  "source_sha256": "45aa331c58d7ac441047401d9cc132ce42a1bda51bd1693a1b30bfa00d32846a",
+  "created": "2025-12-21T12:38:15",
+  "timestamped": false,
+  "options": {
+    "chunk_minutes": 5,
+    "clean": true,
+    "clean_mode": "standard",
+    "redact_level": "standard",
+    "post_fix": "C:\\Users\\naked\\GitHub\\Codex_Sandbox_Prototype\\notes\\corrections.json",
+    "post_terms": "C:\\Users\\naked\\GitHub\\Codex_Sandbox_Prototype\\notes\\redaction_terms.json",
+    "report": false
+  },
+  "run_dir": "C:\\Users\\naked\\GitHub\\Codex_Sandbox_Prototype\\out\\textlab\\recording_10__20251220_155127__20251221_123815",
+  "prepared": "C:\\Users\\naked\\GitHub\\Codex_Sandbox_Prototype\\out\\textlab\\recording_10__20251220_155127__20251221_123815\\prepared.txt",
+  "chunks_dir": "C:\\Users\\naked\\GitHub\\Codex_Sandbox_Prototype\\out\\textlab\\recording_10__20251220_155127__20251221_123815\\chunks",
+  "chunk_meta_dir": "C:\\Users\\naked\\GitHub\\Codex_Sandbox_Prototype\\out\\textlab\\recording_10__20251220_155127__20251221_123815\\chunk_meta",
+  "chunks": [
+    {
+      "chunk": 0,
+      "file": "chunks\\recording_10__20251220_155127.chunk_000.txt",
+      "meta": "chunk_meta\\recording_10__20251220_155127.chunk_000.meta.json",
+      "ts_first_s": null,
+      "ts_last_s": null,
+      "words": 3890,
+      "preview": "I am driving to work today. Today is the 29th, I believe, on October and we had a big fight last night. And so I had a few things. I thought about last night and I said them this…"
+    }
+  ]
+}

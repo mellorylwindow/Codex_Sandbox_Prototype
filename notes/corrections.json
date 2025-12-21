@@ -18,6 +18,12 @@
       "to": "Carolynn",
       "whole_word": true,
       "case_sensitive": false
+    },
+    {
+      "from": "too much behind",
+      "to": "two months behind",
+      "whole_word": false,
+      "case_sensitive": false
     }
   ]
 }

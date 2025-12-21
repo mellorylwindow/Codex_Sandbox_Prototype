@@ -1,0 +1,13 @@
+[
+  {
+    "chunk": "chunk_000",
+    "chunk_path": "C:\\Users\\naked\\GitHub\\Codex_Sandbox_Prototype\\out\\textlab\\recording_10__20251221_142744\\chunks\\chunk_000.txt",
+    "suggested_ops": [
+      "review_and_format",
+      "grammar_cleanup",
+      "summary_bullets",
+      "rewrite_clean",
+      "rewrite_story_draft"
+    ]
+  }
+]
