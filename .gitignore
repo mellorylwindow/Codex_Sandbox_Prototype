@@ -226,3 +226,6 @@ out/transcripts/
 
 # TextOps outputs (keep local)
 out/textops/
+
+# generated outputs
+out/
