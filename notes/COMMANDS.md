@@ -1,161 +1,172 @@
 # Codex Sandbox — Commands Cheat Sheet
 
-This repo is “offline-first”: we transcribe + generate artifacts locally, then optionally do AI-assisted rewriting later.
+This repo is OFFLINE-FIRST: transcribe + generate artifacts locally, then optionally do AI-assisted rewriting later.
 
----
+================================================================================
+FOLDER MAP
+================================================================================
 
-## Where files go (conventions)
+Inputs (notes/)
+  - Media:                     notes/media_in/
+  - Hotwords (one per line):   notes/hotwords.txt
+  - Corrections (replacements):notes/corrections.json
+  - Redaction terms/patterns:  notes/redaction_terms.json
+  - Optional prompts:          notes/transcribe_prompt_*.txt
 
-### Inputs
-- Media goes in: `notes/media_in/`
-- Hotwords (bias the model toward correct spellings): `notes/hotwords.txt` (one phrase per line)
-- Deterministic fixes: `notes/corrections.json` (string replacements)
-- Redaction terms + patterns: `notes/redaction_terms.json`
+Outputs (out/)
+  - Transcripts:               out/transcripts/
+  - Post-processed (textops):  out/textops/
+  - TextLab runs (TOC/chunks): out/textlab/
+  - Packs (paste-ready):       out/packs/
 
-### Outputs
-- Transcripts: `out/transcripts/`
-- Post-processed textops outputs: `out/textops/`
-- Textlab runs (chunked / TOC / manifest): `out/textlab/`
+================================================================================
+TRANSCRIBE (main workhorse)
+================================================================================
 
----
+Most common
+  transcribe demo_journal
+  transcribe demo_journal --srt
+  transcribe notes/media_in/demo_journal.mp4 --srt
 
-## transcribe (main workhorse)
+Output selection (when supported by wrapper)
+  transcribe demo_journal --txt
+  transcribe demo_journal --json
+  transcribe demo_journal --srt
 
-### Most common
-transcribe demo_journal
-transcribe demo_journal --srt
-transcribe notes/media_in/demo_journal.mp4 --srt
+Useful flags
+  transcribe demo_journal --mode timestamps
+  transcribe demo_journal --print-latest
+  transcribe demo_journal --open-latest
 
-### Output selection (when supported by wrapper)
-- --txt (default)
-- --json (segments JSON)
-- --srt (subtitle file)
+Quality knobs
+  transcribe demo_journal --language en
+  transcribe demo_journal --model small
+  transcribe demo_journal --beam-size 5
+  transcribe demo_journal --no-vad-filter
 
-### Helpful flags
-transcribe demo_journal --mode timestamps
-transcribe demo_journal --print-latest
-transcribe demo_journal --open-latest
+Hotwords + prompt (proper nouns / tricky audio)
+  transcribe demo_journal --hotwords-file notes/hotwords.txt
+  transcribe demo_journal --prompt "Preserve proper nouns exactly: Duran Duran, Gizmo."
+  transcribe demo_journal --prompt-file notes/transcribe_prompt_journal.txt
 
-### Quality knobs
-transcribe demo_journal --language en
-transcribe demo_journal --model small
-transcribe demo_journal --beam-size 5
-transcribe demo_journal --no-vad-filter
+Post-processing
+  transcribe demo_journal --post-clean
+  transcribe demo_journal --post-redact standard
+  transcribe demo_journal --post-terms notes/redaction_terms.json
+  transcribe demo_journal --post-report
+  transcribe demo_journal --post-fix notes/corrections.json
 
-### Hotwords + prompt (helps proper nouns / tricky audio)
-transcribe demo_journal --hotwords-file notes/hotwords.txt
-transcribe demo_journal --prompt "Preserve proper nouns exactly: Duran Duran, Gizmo."
-transcribe demo_journal --prompt-file notes/transcribe_prompt_journal.txt
+Raw runner (bypass wrapper)
+  python transcribe_run.py "notes/media_in/demo_journal.mp4" --mode timestamps --srt
 
-### Post-processing (clean / redact / custom terms / report)
-transcribe demo_journal --post-clean
-transcribe demo_journal --post-redact standard
-transcribe demo_journal --post-terms notes/redaction_terms.json
-transcribe demo_journal --post-report
+================================================================================
+TEACH (build your personal fixes)
+================================================================================
 
-### Corrections pass (deterministic “post-fix”)
-transcribe demo_journal --post-fix notes/corrections.json
+Add a fix (wrong -> right)
+  teach "Duran Iran" "Duran Duran"
+  teach "Gismo" "Gizmo"
+  teach "too much behind" "two months behind"
 
-### Raw runner (no wrapper)
-python transcribe_run.py "notes/media_in/demo_journal.mp4" --mode timestamps --srt
+What teach updates
+  - notes/hotwords.txt       (bias toward correct spellings)
+  - notes/corrections.json   (deterministic replacement pass)
 
----
+Verify
+  cat notes/hotwords.txt
+  cat notes/corrections.json
 
-## teach (build your personal fixes)
+================================================================================
+TEXTOPS (clean + redact transcript files)
+================================================================================
 
-Teach updates your “memory files” so the next run improves.
+Basic
+  python textops_run.py out/transcripts/demo_journal__20251220_101645.txt --clean
+  python textops_run.py out/transcripts/demo_journal__*.txt --clean --redact standard --report
 
-### Replace a wrong phrase with the right one
-teach "Duran Iran" "Duran Duran"
-teach "Gismo" "Gizmo"
-teach "too much behind" "two months behind"
+Common combo
+  python textops_run.py out/transcripts/demo_journal__*.txt --clean --clean-mode standard --redact standard --report
 
-Typical behavior:
-- Adds the correct phrase to `notes/hotwords.txt` (bias)
-- Adds a deterministic replacement to `notes/corrections.json` (post-fix repair)
+================================================================================
+TEXTLAB (chunking + TOC + manifest)
+================================================================================
 
-### Verify what teach changed
-cat notes/hotwords.txt
-cat notes/corrections.json
+Run it
+  textlab recording_10
+  textlab out/transcripts/recording_10__20251220_155127.txt
 
----
+Chunk sizing
+  textlab recording_10 --chunk-minutes 5
+  textlab recording_10 --chunk-minutes 2
 
-## textops (clean + redact a transcript file)
+Print / open latest
+  textlab recording_10 --print-latest
+  textlab recording_10 --open-latest
+  textlab recording_10 --open-latest --open-target dir
 
-### Basic
-python textops_run.py out/transcripts/demo_journal__20251220_101645.txt --clean
-python textops_run.py out/transcripts/demo_journal__*.txt --clean --redact standard --report
+================================================================================
+SCRIBE (screen recording -> guide/PDF flow)
+================================================================================
 
-### Common combo
-python textops_run.py out/transcripts/demo_journal__*.txt \
-  --clean --clean-mode standard \
-  --redact standard \
-  --report
+Run capture/pipeline
+  python scribe_run.py
 
----
+Export PDF
+  python scribe_export_pdf.py out/scribe/<run_id>/
 
-## textlab (chunking + TOC + manifest)
+================================================================================
+CORPUSSEARCH (offline search over your exported writing)
+================================================================================
 
-### Run it
-textlab recording_10
-textlab out/transcripts/recording_10__20251220_155127.txt
+Searches out/my_corpus/my_messages.jsonl
 
-### Chunk sizing
-textlab recording_10 --chunk-minutes 5
-textlab recording_10 --chunk-minutes 2
+  corpussearch "velvet os"
+  corpussearch "border states" --k 25
+  corpussearch "tax engine" --chunk-chars 1200 --overlap 200
+  corpussearch "transformus" --source "C:\Users\naked\Downloads\chatgpt-export\my_messages.jsonl"
 
-### Print / open latest
-textlab recording_10 --print-latest
-textlab recording_10 --open-latest
-textlab recording_10 --open-latest --open-target dir
+================================================================================
+CORPUSPACK (make a paste-ready Markdown pack from your writing)
+================================================================================
 
----
+Writes a single Markdown pack to out/packs/
 
-## scribe (screen-recording → guide/PDF flow)
+  corpuspack "velvet os"
+  corpuspack "border states" --k 25
+  corpuspack "mallow" --include-meta
+  corpuspack "tax engine" --max-chars 900
+  corpuspack "transformus" --out out/packs/transformus_seed.md
 
-### Run scribe capture / pipeline
-python scribe_run.py
+================================================================================
+BASH FILE READING (quick recipes)
+================================================================================
 
-### Export PDF (example)
-python scribe_export_pdf.py out/scribe/<run_id>/
+View
+  cat FILE
+  head -n 40 FILE
+  tail -n 40 FILE
+  sed -n '1,120p' FILE
+  sed -n '120,240p' FILE
+  less FILE        (press q to quit)
 
----
+Search
+  grep -n  "Gizmo" FILE
+  grep -ni "duran" FILE
 
-## Reading files in bash (quick recipes)
+Newest output
+  ls -t out/transcripts/demo_journal__*.txt | head -n 1
+  ls -t out/textops/demo_journal__*.txt     | head -n 1
 
-### View whole file
-cat FILE
+================================================================================
+QUICK “TODAY” WORKFLOWS
+================================================================================
 
-### View first / last lines
-head -n 40 FILE
-tail -n 40 FILE
+1) Transcribe + subtitles + open latest
+  transcribe demo_journal --srt --open-latest
 
-### View a slice
-sed -n '1,120p' FILE
-sed -n '120,240p' FILE
+2) Teach a fix, then rerun
+  teach "Duran Iran" "Duran Duran"
+  transcribe demo_journal --print-latest
 
-### Scroll nicely
-less FILE
-# q to quit
-
-### Search inside a file
-grep -n "Gizmo" FILE
-grep -ni "duran" FILE
-
-### Find the newest output
-ls -t out/transcripts/demo_journal__*.txt | head -n 1
-ls -t out/textops/demo_journal__*.txt | head -n 1
-
----
-
-## Quick “today” workflows
-
-### 1) Transcribe + subtitles + open latest
-transcribe demo_journal --srt --open-latest
-
-### 2) Teach a fix, then rerun
-teach "Duran Iran" "Duran Duran"
-transcribe demo_journal --print-latest
-
-### 3) Make it chunkable for AI later
-textlab demo_journal --chunk-minutes 5 --open-latest
+3) Make it chunkable for AI later
+  textlab demo_journal --chunk-minutes 5 --open-latest

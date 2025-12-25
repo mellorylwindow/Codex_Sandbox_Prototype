@@ -229,3 +229,20 @@ out/textops/
 
 # generated outputs
 out/
+
+# --- Tax intake (sensitive) ---
+tax_intake/00_inbox/
+tax_intake/10_raw_canonical/
+tax_intake/20_duplicates/
+tax_intake/30_extracted/
+tax_intake/40_reports/
+# Keep index outputs local too (manifest may contain paths)
+tax_intake/index/
+
+# never commit media/images
+notes/media_in/
+out/images/
+**/*.png
+**/*.jpg
+**/*.jpeg
+**/*.webp

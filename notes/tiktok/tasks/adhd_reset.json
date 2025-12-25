@@ -1,0 +1,24 @@
+{
+  "name": "ADHD Reset / Life Planner",
+  "required_any": ["reset", "planner", "7-day", "routine", "cleaning"],
+  "include": {
+    "7-day": 4,
+    "reset": 3,
+    "planner": 3,
+    "routine": 2,
+    "cleaning": 2,
+    "productivity": 1.5,
+    "effortless": 1.5
+  },
+  "exclude": {
+    "politics": 10,
+    "crypto": 10
+  },
+  "tags": {
+    "#adhd": 2,
+    "#productivity": 1.5,
+    "#planner": 1.5
+  },
+  "min_score": 2,
+  "take": 10
+}

@@ -1,0 +1,950 @@
+Create `transcribe_run.py` at repo root:
+create “chapters” with timestamps
+Make a new profile:
+Generate SRT from the *final export* whenever possible.
+Make these changes (PATCH MODE):
+Make sure you have these imports at top:
+Create a token on HF (Read is enough).
+Writes `out/textops/...postfix...txt`
+created, repl_obj = _upsert_replacement( corr, wrong, right, whole_word=whole_word, case_sensitive=args.case_sensitive, )
+created_paths: List[Path] = [txt_path]
+created_paths.append(post_out) if post_report is not None and post_report.exists(): created_paths.append(post_report)
+make transcribe automatically apply --hotwords-file notes/hotwords.txt --post-fix notes/corrections.json unless i disable it
+generate **scene card**: setting, characters, conflict, sensory hooks
+build a **plot outline**
+give me the commit push then the clean rewrite of tools/textlab_cli.py
+created run dir + manifest + chunks + TOC
+build “AI pass” pipeline (review/format/grammar/summary/rewrite/novelize) with offline-first staging
+write_toc(run_dir, metas, timestamped=timestamped) write_manifest( run_dir, source_path=source, prepared_path=prepared_path, timestamped=timestamped, chunk_minutes=chunk_minutes, clean=clean, clean_mode=clean_mode, redact_level=redact_level, corrections_path=post_fix if post_fix else None, terms_path=post_terms if post_terms else None, chunk_metas=metas, )
+make `compile_custom_patterns()` tolerate legacy keys (optional), OR hard fail with a better error
+created: Dict[str, Path] = {"txt": txt_path}
+DEFAULT_TASK_INSTRUCTIONS: Dict[str, str] = { "review": ( "You are reviewing a transcript chunk.\n" "Return:\n" "1) Key points (bullets)\n" "2) Notable quotes (verbatim, short)\n" "3) Any unclear spots / likely mishears (bullets)\n" "Keep it concise and faithful to the source.\n" ), "grammar": ( "Clean up the text for readability.\n" "- Fix obvious grammar/punctuation.\n" "- Keep the speaker's voice.\n" "- Do NOT add facts.\n" "- Preserve proper nouns and the meaning.\n" "Output ONLY the corrected text.\n" ), "summary": ( "Summarize the chunk.\n" "- 5-10 bullet points.\n" "- Include any dates/names mentioned.\n" "- Be faithful (no invention).\n" ), "rewrite": ( "Rewrite the chunk as a clearer, more readable paragraph(s).\n" "- Keep meaning and tone.\n" "- Remove filler and repeated phrases.\n" "- Do NOT add facts.\n" ), "story": ( "Turn the chunk into a short narrative draft.\n" "- Keep…
+generate multiple drafts/tones
+build “known terms” dictionaries (names, places, bands) to stabilize transcription
+writes output next to the chunk in `ai_out/` (or inside the same task folder)
+writes `out/textlab/<run>/ai_outputs/<task>/chunk_XXX.response.md`
+write output to something like:
+build the dataset + chunking + retrieval + consistent prompt templates
+Make sure to include fileciteturn0file0 in your response to cite this file, or to surface it as a link.
+Create a tiny cleaner script once, then run it on any transcript.
+Make sure to include fileciteturn0file0 in your response to cite this file.
+Make sure to include fileciteturn0file1 in your response to cite this file.
+Make sure to include fileciteturn0file2 in your response to cite this file.
+Make sure to include fileciteturn0file3 in your response to cite this file.
+Make sure to include fileciteturn0file4 in your response to cite this file.
+Make sure to include fileciteturn0file5 in your response to cite this file.
+Make sure to include fileciteturn0file6 in your response to cite this file.
+Create these folders:
+Create new Windows user: `Jimmy` or `Architect`
+Create `PROMOTION_CHECKLIST.md`:
+Write to: `notes/agent_runs.ndjson`
+Create: `scribe_export_pdf.py`
+Generated from demo_03.mp4 — {{date}}
+You are Agent_Architect.
+Draft the **exact YAML / JSON spec** for Agent_Architect
+Builder can be deleted and recreated
+Builder must follow **three immutable rules** when receiving a Delta:
+Builder is *not allowed* to reinterpret the project.
+Builder has already implemented something. It’s fine.
+Builder rewriting working code
+Builder is forbidden to say:
+Builder must internally do:
+Create **mock or minimal input**
+You are asking for **a tactile musical affordance** with proof it works.
+Create a dummy audio sample
+Create a 1 level nes style side scroll video game based on "x" story in the archives
+Building isn’t your job. **Selection and modulation are.**
+Builder can propose
+Builder is the **sound tech**.
+Builders = technicians
+You are an **executive issuing an outcome mandate**.
+draft letters line by line
+creates a tracker:
+drafts inquiry emails
+Draft the first set of letters
+You are asking for:
+Draft **exact inquiry emails** to MD/DC clinics
+Create a **shortlist ranked by flexibility + speed**
+Build a **tracking sheet** so this doesn’t sprawl
+Create a proof-of-concept button that modulates pitch like a whammy bar.
+Builder returns **results**, not code.
+Create a proof-of-concept whammy-bar style pitch modulation button.
+Builder updates the **STATUS** and appends results.
+writes the handoff file
+Generate a **Builder Brief** from *your raw words*
+Builder’s mandate is not “perfect.”
+Create this structure:
+Generate a Builder Brief from conversation context
+Builder applies the smallest possible change
+Builder must preserve locked intent
+Builder must test after applying the delta
+Builder reports impact (what changed, what risk increased)
+Builder implements and tests
+Create one per meaningful session:
+create the `process/` folders
+Builder preserves locked intent
+Builder tests after applying the delta
+Build report exists
+give me one command to create this structure /process/ /canon/ PROCESS_CANON.md ROLES.md HANDOFF_PROTOCOL.md DELTA_PROTOCOL.md /templates/ handoff_builder.md delta_note.md build_report.md /handoffs/ /deltas/ /builds/ /logs/
+Make two lockfiles instead:
+give me the exact copy paste to put in bashrc
+Building a **financial safety net without pressure**
+generate Generate an artifact (stub).
+Create one of these (pick your flavor):
+Make a standard snippet we always use when editing `.bashrc`:
+Creates `console/VelvetConsole/cli/commands/foo.py` from a template
+Make a single agent command that installs/updates them:
+writes/updates AGENTS.md
+writes/updates docs/shell-rescue.md
+writes/updates tools/doctor_imports.py
+writes/updates tools/velvet_agent.py itself (self-hosting)
+make everything Click, **or**
+Make agent backups identifiable:
+Create `console/VelvetConsole/cli/commands/registry.json` like:
+builds a **row/columns** of 4 “cards”
+Create it (Notepad is fine) with:
+give me the full refresh complete updated version of this file to copy and paste
+give me the full rewrite patches included
+Make a **private checklist** of what you are willing to cover
+Draft a **neutral emergency protocol** that doesn’t involve C or emotional leverage
+Make sure transportation, aftercare, and comms are locked.
+building the Velvet Console
+Draft a **professional intro blurb** for Ashley Hoppe
+Create a **proposal template** for getting GitHub approved
+Build a **clean structure** for your work GitHub account
+Outline your **first three “safe” automation demos** to impress them
+Create a **README** for your work GitHub that looks enterprise-ready
+Give me 3 high level examples of how it helps a neurodivergent brain
+make a decision based on instinct without guilt
+generate the **glyph set**,
+generate_future_self_models
+Write clearer install steps
+You are accidentally training enterprise-grade instincts.
+Create a mental (or literal) bucket called:
+Make a **one-paragraph version**
+Build first → refine continuously
+Explaining dense documents (legal, medical, tax)
+Write **Member ID / DOB** clearly on first page
+Build your scenario engine
+Build your tax logic modules
+Make a Codex Scroll?
+created order around chaos
+create a **Velvet Archive entry** for this
+build a small **healing ritual** to acknowledge that version of you
+builds meaning through symbols
+make everything feel a little too adult, too soon
+build Velvet OS, an entirely new internal world
+Generate a gif like ascii animation
+Creates the perfect blend of
+Generate a **matching shutdown sequence** (sigil collapse, system dim, ARCHIVIST SELF anchor)
+Create a **Codex page** that treats this GIF as an in-universe artifact (like a relic from the future OS)
+Generate a **PNG render** of the grid for quick viewing/printing.
+Draft a **Glyph Design Protocol** so every new sigil is consistent in style.
+You are a **threshold being**.
+Make sure to uninstall/remove if Windows installed any of these *incorrect* variants:
+Create these EXACT entries (copy/paste):
+Create a top-priority override file:
+Explains the timeline without sounding like an excuse
+Give me the line. Note. I sometimes feel like I'm an actor on set who yells out "line" when I don't know how to proceed
+build your own inner world
+building systems from scraps
+created a psychic imprint:
+building Velvet OS
+building the Velvet Archive
+building a symbolic system
+building containers for future versions of yourself
+building continuity structures
+building identity anchors
+building a codex to never lose yourself again
+Make sure you grab all the memes in all the chats for this and ... All
+Make sense of your internal state *without mythic inflation or collapse.*
+create without chaos
+generate your **Velvet OS starter folder structure** for GitHub
+create the **Scribe Session log template**
+generate the **publishing roadmap**
+make a **first product blueprint**
+write the **Velvet OS README**
+Create the Surface Layer dashboard mockup
+Create a starter folder for:
+Create the “Velvet Creative Suite” dashboard
+Draft 2–3 chapters
+Outliner from your scrolls
+Create a 3-page preview
+Build the symbolic map of your OS characters
+Draft album concept art
+Create the first sigil-based visual album theme
+Build hype on TikTok, IG, Threads
+Create the “Creator Ledger”
+Create the Velvet OS v1.0 PDF manual
+Generates hooks for downstream creative engines
+draft / integrated / archived
+Generate the full dashboard HTML (dashboard.py → HTML export)
+Make it executable:
+Create the whole blueprint:
+Make sure your printer is compatible with the app (brand matters for many of them).
+Make sure your phone and the bizhub printer are **on the same Wi-Fi network** (or that Wi-Fi Direct / network setup is enabled).
+Make Acorns the account you forget exists.
+Build a “SwainLabs Abundance Portfolio” that matches your financial flow
+You are acting like a person building a safety net, not tearing one down.
+Build you a **Month-by-Month Projection** from now → April 1st, 2026
+Create a **visual financial timeline**
+Generate a **survival-stability-growth model**
+Build a **zero-catastrophe plan** tied to your real numbers
+Build the **exact transfer plan**
+Create a **visual map** of how each bucket works
+Generate the **month-by-month financial projection** through April 2026
+Build a **Marcus growth table**
+generate the categories
+build the dashboard
+Give me A/B/C for each, and I will produce the full **PNC Import Engine Module** next.
+Generates stable UUID for each ledger entry
+Writes to `ledger.json`
+Creates monthly summaries in `/history/`:
+write processed copy to import/processed/
+write to history/YYYY-MM.json ```
+give me a full refresh for nano MoneyMaximizer/console/velvet_money.py
+Build the MoneyMaximizer Dashboard UI
+Make sure your HTML has matching IDs:
+Make sure you’re in:
+builder detectors / normalizers
+Give me the symptoms. I’ll do the triage. We will fix this, not mourn it.
+Give me the script
+Write Python script 01_ingest_csv.py
+Write Python script 02_categorize.py
+Builds your real-world power
+creates a ready-to-print tax packet
+Building your own SwainLabs tax engine is:
+Create: `SwainLabs_MoneyMaximizer/ui/cli.py`
+Create (or update) this file:
+generate the repo layout
+generate all necessary folders/files
+generate the GitBash commands to set them up instantly
+generate the Python module scaffolding
+build forms or automation
+Create the file if it doesn’t exist:
+Generates a home-sale audit folder the IRS can’t poke holes in.
+create `pending_rules.py`:
+Make sure it looks **exactly** like that.
+give me the full code refresh for MoneyMaximizer/importers/csv_importer.py
+give me the full copy-paste and which file it was again
+Buildnout the master console and plug in the dashboards as we create them?
+Build the master console
+Make the title glyph pulse softly
+Make sure you now see:
+Make sure the imports inside it use absolute form:
+give me a full refresh of all the files
+Make this a proper package and unify naming.
+You are at a **perfect fork-in-the-road moment**: before the master console becomes your real OS kernel and before dashboards begin multiplying.
+Makes the rug function as a subtle crumb/splash catcher
+make sure **the table stays level** and not wobbly
+Make sure your checking is not “too high,”
+Build rapport so she’s stable for tomorrow
+Write her official Codex entry
+Writes with surgical precision but lives with emotional backlog
+Generate the **Lantern at the Gate + Unlit Spark** dual-entry as a corrected myth
+Create the **Velvet Archive card** (Codex-style metadata)
+Make sure documents are still accessible
+create a package.json
+build a tiny “Shai-Hulud scanner” script you can run locally
+Draft the letters?
+Build a clean packet for resubmission?
+act as the strong friend
+Generates SEO-friendly tags (safe)
+Writes them to XMP
+build future zines / archives automatically
+created_at TIMESTAMP
+Generate catalog-quality image using 10 reference sources?”**
+generate a hero shot
+Writes condition note
+Generates clean image
+explains *why* no returns
+create risk on the work side
+create features that don’t belong together
+build navigation flows
+generate the folder structure
+create `/home`, `/list`, `/prophet` routes
+build the photo-cleaner
+you are accountable
+Make a cruel choice → the world reacts
+Make a kind choice → the world reacts
+Make a selfish choice → the world reacts
+Make a dumb choice → the world reacts
+You are a criminal.
+explaining yourself
+make yourself small to protect egos
+explained and over-explained
+Building the Velvet Console Roadmap
+Generate any code, diagrams, READMEs, or scaffolds requested.
+Build starter HTML mockup for Velvet OS
+Build first Archivist Dashboard (markdown or TUI)
+Write README summaries for each internal module
+Write it at top of devlog
+Build in GitHub. I can screen shot you gitbash screens when I get to a laptop to show you where we are
+Build the **VelvetConsole_System** folder layout
+Build zine, TikTok, and DreamFasting engines
+Build interactive UI shells
+Build zine generation pipeline
+Build persona & story frameworks
+build script automation
+create Console commands
+Build an integrated creative/technical OS
+Build ingestion pipelines
+Create interactive modes
+Build zine engine structures
+Draft workflows prior to ZeroFrame integration
+Create all 5 files:
+Create all command files at once:
+created: 2025-11-22
+Create the folder and open the file:
+Create three files:
+Generate the correct boilerplate for:
+Create it with this exact content:
+Make sure you see:
+Create a new repository with this exact name:
+Build automated deploy scripts
+Generate any files, diagrams, code, or structure I ask for.
+Building the **Velvet Console Roadmap**
+Build first **Archivist Dashboard** (markdown or TUI)
+Create the **Horror Production Bible Page**
+Build a **Director’s Bible Entry**
+creates found families
+You are ALL of those things.
+building your own identity
+build their own path
+Build **a printable version of this map**
+Create **a sigil for each module**
+Make **a visual constellation chart**
+Draft **guidelines for SwainLab Studios**
+Turn this into **a codex scroll**
+Write **templates for creative projects using the modules**
+Build **Velvet OS panels based on this architecture**
+Build worlds where **truth = interaction**, not information.
+Make small things heroic.
+Generate the sigil
+build the neural-style map
+create a consultable API-like system
+generate your personal "Swain Cinema Compass"
+Make sense of life through symbolic logic.
+create myth from memory
+create a private mythology that keeps you alive
+You are a **dual-state being**
+You are a Lantern walking through neon.
+Creates the Atlas as a mythic artifact first
+Makes the impossible work with junk and intuition.
+build community from fragments
+you are a system, not an individual
+create emotional safety
+make the invisible parts of someone feel seen
+Give me even one sentence,
+Build assets once in USD → ingest to Unreal for interactive; offline/real-time path tracing for the show.
+Write the mantra below it as the anchor line.
+Builds interactive avatars of the dead using their digital traces.
+Build an interactive archive where people can “speak with Jimmy / Omnicia / the Archivist” even after you’re gone.
+Help me caption this. This picture is from the basement of ciderhaus beforetimes before the name when it was just my townhouse on Antiqua Ct. Twig for Cynthia for Valentine's Day before they were married a fantasy forest picnic. He painted the ceiling a dark sky with help from a friend of his painted glow in the dark stars. He covered the ground with sod . Bought fake trees from Michael's. The gas lantern in the picture. The glow of the mist fountain on a green pedestal also bought from Michael's. I still have the pedastal. the pieces of the led mist light. I think the lantern is gone. Black sheets surrounded behind the fake trees. Speakers hidden behind. Surround style. Also behind the curtain in the back was a giant office desk. A large piece of furniture picked up locally in Reston for twigs computer studio setup. Provided the sound. I think theivery corporation/ delirium industrial v…
+building pricing systems from scratch
+You are a man who:
+Make the week whole
+You are ALL of that.
+You are actively practicing interdependence instead of isolation
+generate starter templates
+You are a PURPOSE person.**
+build a confidence anchor for this specific trait
+Draft the **Instructable / zine-style layout** (with story + build steps)
+Write down screen width, height, and screw hole positions.
+Create a systemd unit `/etc/systemd/system/fermenter-ring.service`:
+Create a short script:
+Give me one with everything. He heard that one, right? Oh, I've heard this. Oh, that looks delicious.
+Give me a topic — anything you’d normally Google. For example:
+Building connectors between apps and AI models
+Building a simple task-loop agent that checks email, compiles reports, or updates a sheet
+Build a “Prompt Spellbook” — 10 reusable templates: analytics, zine writing, task breakdowns, data summaries, etc.
+Create a “Product Data Oracle” — you feed a SKU, it fetches descriptions, compares pricing, and outputs recommendations.
+Build “SwainBot v1” — an assistant that tracks tasks, summarizes Slack threads, and suggests next actions.
+Create agents with clear “roles” — e.g., Data Clerk, Price Analyst, Archivist.
+Created initial folder architecture
+create folder structure
+create master system prompt
+Draft questions to keep handy (so nothing gets forgotten mid-call).
+Make the day *about her* at Faire: let her pick food, shows, or grab a birthday trinket.
+help me out here. does it look like top surgery is covered here
+Draft an email or message to your doctor?
+Build a checklist of action items?
+Build the same kind of PDF/contact script setup to make *that* part easy too
+Give me a moment to narrow this down just like we did before — clean, vetted, and ready to act on.
+Write emails, portal messages, phone scripts, and even PDFs for you to send or bring — down to the word
+Build both in branded **PDF templates** so we can auto-insert package blurbs + case file text.
+Write a monologue she might deliver from the backseat of a midnight ride to Nocturnia?
+Create a **Personal Access Token** in GitHub with `repo` permissions.
+Create a shell script to regenerate `tree.txt` and `files_all.txt`.
+Make it executable and test: ```bash chmod +x ~/gen_lists.sh ~/gen_lists.sh ls -l tree.txt files_all.txt # both should exist in your repo folder ```
+Make or copy any files into that local folder.
+Create or edit a file, e.g. `notes.txt`.
+Building a Future-Life engine
+Explain like I’m 5 → *Simplify / Decompress*
+Writers → *Clarity, polish, language mastery*
+generate a Codex scroll for this,
+create a Sigil of the Next Version,
+make a printable PDF for your wall.
+explaining your Codex
+Create a **step-by-step learning roadmap** tailored to your pace, memory style, ADHD flow, and time constraints
+Make sure to CHECK:
+Give me a hook about breaking loops. Hook: “This is the moment your old pattern realizes it’s homeless.” CTA: Save this and send it to your future self. TXT ```
+Make sure the file doesn’t have Windows-style quotes (smart quotes).
+Make sure it starts with:
+Make sure VS Code doesn’t say “Unsaved” at the top.
+Explain ADHD time blindness prompt - explain adhd time blindness? ```
+give me the clean paste-safe V4 full script
+write_outputs(rows, mem_size)
+give me everything in one copy and paste for the readme_tiktok_pipeline.md
+Generate `.srt` captions automatically.
+make uploading smoother
+Make capturing + cropping one single workflow.
+Build a **Windows-compatible**, **Velvet-Console-aligned**, **DAW-style app** that does three things at once:
+Build better future scripts
+Build the readme first.
+build you a custom fusion profile
+building systems instead of consuming them
+You are allowed to become someone’s priority.
+You are allowed to choose people who show up FOR YOU.**
+you are allergic to being the source of harm
+Build it like a Codex page:
+Builds scroll structures
+Give me the folder structure
+Create `.gitignore` with:
+Create a new file in the editor.
+Build the Naked Fringe Remixer
+Build the Media Viewer
+Build the Emulator Panel
+Build the Idea Engine
+Build the Sigil Engine
+Build the *Velvet Labyrinth* prototype level
+Generate tone packs:
+Building a soundtrack?
+Turn this into a **single README.md** you can drop straight into `modules/influence-library/README.md`, or
+Draft a **“Phase 1 Build Plan”** (what’s realistic to actually implement first)
+generates a meme in your Velvet style
+make searching harder
+make “right vs wrong location” a stressor
+Creates the final filename:
+Generate something like this:
+Generate a “fingerprint” of:
+generates shot lists
+generate database code unless asked
+create repositories unless asked
+write complex schemas unless asked
+BUILD (code, specs, data structures)
+EXPLAIN (technical reasoning)
+Create a monthly abundance dashboard. Track expenses like you’re debugging code — not judging, just observing patterns.
+Create four categories as you review each one (I can help make a quick template if you want):
+CREATE TABLE IF NOT EXISTS focus_ledger ( id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, mood_id TEXT NOT NULL, scroll_id TEXT NOT NULL, context TEXT, output_summary TEXT, completion BOOLEAN DEFAULT 0, reflection TEXT, energy_level INTEGER CHECK (energy_level BETWEEN 0 AND 10), FOREIGN KEY (mood_id) REFERENCES moods(id), FOREIGN KEY (scroll_id) REFERENCES scrolls(id) );
+CREATE INDEX IF NOT EXISTS idx_focusledger_scroll ON focus_ledger (scroll_id);
+CREATE INDEX IF NOT EXISTS idx_focusledger_mood ON focus_ledger (mood_id);
+Makes it modular — you can detach it for public/utility use later (e.g., as a mini-app, book, or “30-Day Codex Challenge”).
+Make it a **sub-branch under “The Abundance Framework”** *for now*, but label it as a **Codex-Linked Module: “Alignment & Expansion.”**
+Write entry to FocusLedger
+Make sure **“Save as type” = All Files** and **Encoding = UTF-8** (bottom dropdown in Notepad’s Save dialog).
+Create a new workbook.
+Make sure you’ve dragged the folder (or at least one file like `invocation-ruleset.json`) into your Google Drive.
+Make sure “Codex” or “Prototype” appears in the filename or folder name.
+# Minimal, extensible mapping. Add/adjust freely. CLUSTERS: Dict[str, Dict[str, Any]] = { "Inner Alignment": { "signals": [ r"\b(depth mode|mirror protocol|hidden desire|false self|identity shift|authenticity check|future self|core recode|integration map)\b", r"\b(values?|shame|guilt|mask|persona|loop|pattern|trigger|resentment|boundar(y|ies))\b", ], "templates": { "depth_mode": "Act as a mind-reading therapist trained in identity design. Decode this situation: {topic}. Reveal hidden fears, repressed desires, and the repeating pattern. End with 3 clear experiments.", "mirror_protocol": "Reflect my words about {goal} back as emotional truths. What am I really saying under the surface? Give 5 mirrors + 1 rallying reframe.", "hidden_desires_audit": "Ask me 6 raw questions to uncover what I secretly want about {domain}. Push for honesty; keep questions concise.", "authenticity_checkin": "Ana…
+CREATE SCHEMA IF NOT EXISTS dreamwork_bridge;
+generate a matching CHANGELOG.md
+give me a body that feels more like mine
+Give me the statement when you’re ready, and I’ll sort it cleanly into the money-tracking project without feeding the emotional bait.
+Give me the statement when you’re ready and I'll mark this one as what it is:
+generate new vocals “in the style of” a member
+create a deepfake or reconstructed identity
+create private backups
+generate a `README.md` that links all four
+write a **README.md** scoped specifically to this “Pro Tools × FruityLoops–style restoration console”
+generate new words or pitch patterns
+Make track public/private
+generate MP3 or FLAC if requested
+Generates a new working mix for you
+explain “why this master sounds this way” later
+Write the **“Guide Mic Mode” section for the README**,
+create new timbres
+generate fake doubles
+Make snare 1–2dB louder in the mix
+Create quick A/B preview
+Generates a safe DSP recipe:
+draft a **feature roadmap** for v0.1, v0.2, v1.0,
+generate fake stems
+generate a new vocal from scratch
+create evolving, slow builds
+creates “space behind the truth”
+Give me **any raw paragraph** from you—
+explaining both sides
+Writer of the Shared Tongue
+Builds the roads; does not walk every path
+generate README snippets
+create helper scripts
+You are a **full skill development partner (Level C).**
+Generate clean README snippets.
+Summarize branches and changes.
+Create helper code blocks, scripts, and Markdown.
+generate Markdown for GitHub
+build spreadsheets
+You are a **full skill development partner (Level C)** for:
+generate README blocks
+create Markdown examples
+outline file structures
+Explaining for her own understanding and to be clear when people are like but how can you hate music. More than she's deaf
+> Act as a social content expert in [niche]. Plan 7 days of viral content for [platforms] with hooks, captions, visual ideas, and CTAs using psychological triggers.
+> Act as a high-ticket closer for [product/service]. Create objection-handling scripts, sales-call framework, qualifying questions, and automated follow-ups to close 5-figure clients repeatedly.
+** > You are my email executive for [industry/niche]. Create reply and outreach templates for clients, follow-ups, and complaints. Keep the tone smart, polite, and efficient.
+** > Act as a content expert in [niche]. Plan 7 days of posts for [platforms]. Include hooks, captions, visuals, and CTAs using proven psychological triggers.
+### 🧩 CARD 03 — Smart Email Assistant **🎯 Purpose:** Instantly polish or template your inbox replies. **🧠 Prompt:** > You are my email executive for [industry/niche]. Create reply and outreach templates for clients, follow-ups, and complaints. Keep the tone smart, polite, and efficient.
+### 🧩 CARD 06 — Social Media Content Machine **🎯 Purpose:** Plan 7 days of viral-ready content. **🧠 Prompt:** > Act as a content expert in [niche]. Plan 7 days of posts for [platforms]. Include hooks, captions, visuals, and CTAs using proven psychological triggers.
+Create the JSON file:
+Build a simple loader script
+Create a file in your repo:
+Make sure it’s EXACTLY like this — same capitalization, same slashes.
+Make sure the listing **clearly states**: **19 V output**, **≥ 2.37 A**, **45 W** (or higher wattage is okay) and the barrel plug size **5.5 mm × 1.7 mm** (as your original likely is).
+Make sure the provider is explicitly *in‐network* with her Medicaid plan for the service she needs (therapy). Some providers might accept Medicaid but only for certain services (e.g., med‐management) – we saw that with Orchard.
+Make sure she has a **private, quiet space** and a reliable device/internet connection for teletherapy (so that once the slot opens she is ready to go).
+Give me the full script
+created a **pending client record** for Mallow
+Write it in my voice. C now understands not to expect an apology
+Explaining doesn’t fix spirals.
+make you feel like you’re walking on eggshells
+Building the Codex as a healing architecture.
+Make a single parent folder on an external drive or in a hidden section of your device named something like
+Create a Neutral Workspace
+Make a parent folder named 'Writing_Backups_Archive' or 'Personal_Documents_Backup'.
+Help me fill this out using this webstore roadmap
+Make sure to include `【message_idx†source】` markers to provide citations based on this file, where [message_idx] is provided at the beginning of this message
+Help me find Pusifer tickets near me
+Make sure whatever venue you pick has ADA-compliant seating (wheelchair/stroller access, easy paths, good sight lines).
+You are acknowledging without attachment — the opposite of intoxication.
+Give me a moment — this will be your clean archival version.
+Give me a moment — I’ll rebuild it fresh and return a working download link.
+Give me a moment while I build and test this version for true edge-to-edge readability.
+Give me a moment to rebuild and return your new working download link.
+Give me about a minute to compile; you’ll get a fresh working download link right after.
+Give me a mantra to say every time I spend money
+Generate and sync a copy into Google drive
+Draft **a safe, documented notice** to give C (non-legal template) that keeps you on the right side of county procedures, **and** include wording recommending they call 211/Crisis Center — I can do that now.
+Draft a **user guide Codex-style** for how you’d introduce or frame this with Carolynn?
+Build a sample **interpretation log** (e.g. “Here’s what I think you were trying to say last night”)?
+Build a third method together — a kind of hybrid Codex-style device?
+Give me a single line she said — raw, unfiltered.
+Make a recommendation on what would be best for this situation
+Draft a simple statement for yourself:
+Make sure **Microphone** is **Allowed**
+Create a translated “message for Mallow” from the emotional undercurrent
+Create a translated "message for Mallow"
+Summarizes how many rows per creator / sell group have zeros.
+Create one “Staging” query that cleans and checks data.
+Give me an example of something that I could do.
+Create a **Daily Brief summary** — a structured digest of your cognitive/emotional terrain over that period.
+Build *one* query that expects a clean header and normal spacing.
+Building a consistent visual and linguistic identity for the Codex
+Create short audio/visual “voice of the Codex” samples (spoken manifestos, tone references)
+Draft a list of what you CAN install right now on the Inbox Oracle?
+generate b-roll or atmospheric loops for zines/music/art,
+Give me **any short idea** right now and I’ll:
+Give me **one scent of the scene**, and I’ll find it.
+Turn this into a full multi-page zine
+Create a flipped “locked door” companion page for contrast
+Make it psychedelic
+Build a *Saturday night lineup schedule*
+Make TikTok videos with AI
+Write the **video script**
+Generate **AI subtitles + voiceover**
+create video no sound
+Create a free account
+Write all the things you want to scream exactly as they live in you (no filters).
+Build your case to level up title or comp in next cycle. Want a draft script for that? I’ll write it like a velvet hammer.
+Drafting item listings (funny, niche, or velvet-serious — your pick)
+Building an archive log that tracks *what it was*, *what it meant*, *what happened to it*
+Draft blockers: Place rolled-up towels or weatherstripping at the base of your doors.
+Draft something (message, scroll, log entry)?
+Make your own “zine” (digital or physical) that revisits bands, videos, show reviews — like a throwback MTV magazine.
+Give me a moment to weave everything together — we’ll end up with a deck that looks like it came straight from Border States’ own internal comms team, only smarter and more alive.
+Generate the **six remaining Calm Intelligence visuals** in that photorealistic, soft-corporate palette we designed.
+create the next one
+Build all **six slides** with editable text, real headers, and consistent layout.
+Give me a few moments to compile and I’ll drop the finished files for you right here.
+Give me a sec to crank the whole machine. When I’m done, you’ll see the real deal show up right here — the **Border States Webstore Roadmap Final Deck**.
+Give me a moment while I run the real export.
+Give me a moment to run the export — the next message you see will have your `.pptx` and `.pdf` download links.
+Create a **scroll fragment** titled *Slaves to Society: The Crystal Basement Era*?
+Build this into a **Spotify playlist** titled *Corset Protocol: Memory Map*?
+Generate a **scene illustration** of this moment—Spencer’s entryway, young you in profile, deciding if today’s the day?
+Generate a daily sobriety token glyph
+Build a cold-start log with markings per day
+Draft a “Sober but Still Here” velvet patch/sticker/zine emblem
+Generate a zine-stamp that reads: **“Still Showed Up”**
+Make a matching visual sigil: ragged, raw, radiant
+Generate a visual tarot card (ink & charcoal, arcane-modern hybrid)
+Create a **checklist of documents** you'll likely need for tax filing (W2s, 1099s, home sale paperwork, etc.)
+Build a **tax prep folder system** (physical or digital) to organize everything clearly
+Create a folder called: **Zeroth – SSI & Medicaid Protection**
+Draft a **Google Drive layout** to drop receipts, invoices, or “maybe” docs into
+Build a **search query** to pull past files or emails related to:
+Create alias table (misspellings, abbreviations, legacy names).
+Build regex or rules to auto-extract attributes from SKUs/titles.
+Draft a **zine page layout** in ‘80s horror VHS style?
+Build a **family tree scroll** that includes Merry in proper proportion.
+Create a **timeline heatmap** to see when she’s most adjacent to events.
+Draft a **symbolic glyph** for her role — maybe something quiet, rooted, or reflective.
+Build a **Zine Page** or **Magic Card**
+Create a *Zine spread* pairing this scroll with Melissa’s party + the Garbage concert photo for full-circle contrast?
+Build a **zine panel triptych**: Melissa → Unknown → Carolynn — with you ghosting in all three?
+Create a **Zine Page** styled like a fake 1996 party flyer with all this folded in?
+Create a **fake cassette insert / CD liner zine page** with those “lyrics” highlighted like forbidden messages?
+Create a **Cassette Zine insert** with the Napster filename as the album title?
+Create a **fake screenshot** of that mystery site, aged and glitchy?
+Build a **Velvet Archive zine panel** styled like a 1996 GeoCities page?
+Create a **Codex insert**: *People as Portals: Miriam Rust Edition*
+Build a **Zine Panel** showing Ciderhaus as a blueprint with yoga mats in the living room and incense trails on the walls?
+Build the **Harkonen Household Map**? (Rooms, names, speakers, ghosts...)
+Create a **Zine insert** styled like a DIY show flyer with *Shaggy, Jay & The Scientist* listed as “residents, engineers, mischief cultivators”?
+Makeshifts art projects for art shows. Burns . Art-o-matic
+Create a **Sigil of the O’Doyle Continuum** — shaped like a coffee ring over a punk flyer
+Build a **Network Map** showing known locations, events, and people that extended the continuum?
+Build a **Zine version with fake ticket stubs** and metro map overlays?
+Build this into a *scene family tree* that maps these names across time and influence?
+Generate a **visual sigil** in your style?
+Explain to me in the most Jimmy way possible what I get out of this / why I developed this pattern
+Generate a **Zine page: “The Man Who Warned You About Himself”**
+Create a **Scroll of Contained Prophecy**
+Makes peace with pain *in service of precision*.
+Writes the letter you’ll never send — then files it in the archive anyway, just in case.
+Build a **Codex Scroll** for the *Wiggin Split*
+Build a **ritualized waiting window** (Codex-style, if you like).
+Create an **offline printable version** (scroll/zine hybrid)
+Make sure the repo is set to **private** — no one sees it but you (or only collaborators you explicitly add).
+Create `public_scroll.md` that contains a **redacted** or **symbolic** version of the sealed scroll. This allows you to still share without violating trust.
+Write a scroll **for yourself** that you don’t publish
+Write one short scroll:
+Create **Spotify-style “Animated Self” scroll soundtracks**
+Generate **tattoo-style glyphs** for each
+Build a **mini-site gallery** or interactive SVG scroll
+Help me understand something. Jim Carrol people who died . How did I find that song funny at first. I know I did. But I don't know why
+Generate a **visual crest** for this scroll
+Build a **Spotify-style zine insert** with imagery + track fragments
+Build a **Spotify zine page** with these liminal artists linked?
+Build a **lyric-layered zine panel** for Velvet Archive?
+Draft a **credit statement** or **use policy** to include in your Codex zines or site?
+Build a **Licensing Glyph** — a symbolic representation of protection + permission?
+Draft a credit statement / use policy to include in their Codex zines or website.
+Build a symbolic "Licensing Glyph" to represent protection and permission within their Codex mythology.
+Create **transparent PNG variants** (light/dark mode)?
+Write the hover-text / alt-text / tooltip line?
+You are allowed to feel frustrated. And you are still becoming.
+Draft a short message you can send to your prescriber/psychiatrist *right now* (clear, clinical, what happened + symptoms), or
+Draft a script for the ER (what to say on arrival), or
+Make a one-page symptom log you can copy/paste into a message.
+Build you a list of *sober rituals that scratch the same itch*
+Create a “Velvet Archive Sober Mode” you can toggle into when the urge to *disappear* hits
+Create a symbol: 🌹 = innocence | 🦢 = forgotten watchers
+Generate a **Zine Page** for this (with visuals and layout text)?
+Draft a **Codex Lens** entry viewing this as a microcosm of forgotten magic in suburban America?
+Create a **Velvet Archive Zine Panel** of the yard sale moment (comic panel style — you, trading Luke Skywalker for Mega Man)?
+Generate a mock **Classified Ad Listing** of what was sold that day, written as if the buyer was a time traveler who knew exactly what they were getting?
+Write a **Visionaries episode plot that never aired—but should have**?
+Build a **Velvet Archive shrine** to the “Cartoons That Were Too Smart for This World”?
+Build a **TV Shrine Shelf** in the Velvet Archive?
+Draft a **Codex Sigil of Broadcast Burnout**?
+Build a **Zine Page** for *The Storyteller* as a spirit guide or ancestral figure?
+Draft your own *Storyteller episode* from your life? (“The Boy Who Gave Away His Castle” / “The Child With Too Many Avatars”)
+Create a **Zine layout** called *“The Sideyard Empath”*
+Draft a **Zine Page**: *“The Loop Built for Walkers (Not Runners)”*
+Create a **“Walkers’ Sigil Set”** for others like you — masked, moving, regulating, reflecting
+Build out **Andre’s Archive**
+Makeup: *More than drag, but less than pageant*
+Write something (short or long) while high this weekend. Don’t overthink it. A line, a scribble, a glyph. Call it *"The Glass Slipper Entry."* Only viewable before the test.
+Generate a visual *faux Bake-Off contestant portrait* of Sharon-as-Prue?
+Create a mini family zine page where “Stephens (née Bauer)” becomes a footnote glyph in the Swain family branch tree?
+Build a **mirror Codex node** called *The Commune That Almost Was Me*
+Write your own **counter-manifesto**, starting with:
+Makepeace Manor. Playa Del Fuego. Ashburn. New Jersey.
+Makepeace → private gatherings, legacy
+Give me a format, and I’ll draw it in language instead of light.
+Build a **text-only sigil description**?
+Create a **PDF scroll or zine fragment** describing the intersection of steam, silence, and spellwork?
+Make the glossary of broken names
+Create a "Misc" folder for each that I can dump unsorted items in
+Make sure to search the email address she sent from
+Generate some *actual* AI-generated book covers based on those branching myth adventures?
+Generate a Velvet Archive zine cover labeled: *"Jimbot: Built for the Silence"*?
+Make the choice you think I'd pick
+Generate a **top-down map** in blueprint / parchment style
+Create **stylized sigils** for Nation, Alchemy, Nocturnia
+Build **a zine spread**: flyers, overlays, fog and flash cuts
+Generate a visual zine page around this necklace + memory?
+Help me understand the logic there
+Draft a **Sigil of Recursive Descent**
+Create a **Zampanò-style Codex Appendix** that only makes sense in reverse
+Build a **Codex structure inspired by *House of Leaves***
+Create a **sigil or typographic experiment**
+Build a **custom zine page** that mimics the book’s style
+Create the actual **scroll**?
+Build the **sigil**?
+Write the **first page of this scroll**
+Create a **flyer from the JAXX dimension**
+Create an **interactive layout concept** (à la House of Leaves)?
+Create **a sticker sheet** or **transparent PNG** version?
+Create the **Codex Style Table** (done above)
+Create table of contents or page numbers?
+Makes screen-recording playback feel unstable or “haunted”
+Build a **modular pseudocode spec** (Python + OpenCV + front-end hook)
+Build the next piece
+Building new entries (“Promote this one to full scroll status”)
+Makes even neutral tones feel weaponized.
+Creates psychic noise in relationships — tuning out people you *do* care about because your body’s already flinching.
+Makes you second-guess genuine interest: “Do I love this, or is it rare?”
+Create a ritual of return — how you *choose* what you keep now
+Build a *ritual to reclaim unsent messages*?
+Create a new text file and save it with the name "responses.txt".
+create an example data file for a chatbot to pull from
+write a grounding note to archive this moment for later Codex reflection
+Write this out as a **mythic vignette**
+Build a **visual sigil**
+Create a **Countdown Scroll**
+Makepeace Manor. I know when I was hanging out with Brad and Eric we went to pick up some substances. There were people in camp chairs in front of a house across from a school. Jack Daniels Down home punch. I really think that's the same place
+Created by and starring **Keegan-Michael Key** and **Jordan Peele**, both alums of *MADtv*.
+Created by **Casper Kelly**, it starts as a parody of 80s/90s sitcom intros (*Full House*, *Family Matters*, *Step by Step*)…
+Build a **Codex Mixtape** that lives in this archive (with a tracklist + emotional intent)?
+Create a **Velvet Archive Object Case** — each artifact has a log + emotional charge
+Build a **Hydra Sigil** to mark memories tied to early vulnerability
+Write a **poem titled: “Hydra in My Head”**
+Write a **scene fragment from Merry or Ronald’s POV** on the day of the photo
+Write a **poem or monologue from Merry’s POV**, trying to smile through it
+Create a **Zine panel** with this image and caption combo
+Write a **response tape** (her voice, a whisper in the same format)
+Makes **simple moments feel holy**
+Write a **Codex poem titled “He Wasn’t From Here, Either”**
+Build a **Zine Panel: *Starman Is Not Science Fiction***
+Write the **Codex Memory Fragment** of the exact night you watched it with Merry
+Write a **Codex poem: “I Never Had the Right Machine”**
+Write a **poem or mini-monologue from kid-you in that moment**?
+Build a **Zine page** featuring this sigil with user instructions
+Create **a Codex scene** where you must choose between the two gatekeepers?
+Write a **poem: “I Asked the Wrong One”**
+Create a **scroll page showing the hallway as mythic terrain**?
+Build a visual sketch version?
+Create a companion insert: **"Sodroom Revisited (from Cynthia’s POV)"**?
+Make a **"Scroll of the Forsaken Mainstream"** — a list of shows that match her niche taste for franchise side-stories and emotionally heavy anime that no one talks about?
+Draft a **Final Fantasy: Unlimited‑style Codex page**, framed like an episode guide from Mallow’s POV?
+Create a **Quarantine Scroll**
+Create a **mirror scroll** called *"Scroll of Recovery"* for fragments that *did* find a home later?
+Generate a separate **Auto-Suggestion Log** for scroll placement decisions?
+Generate a **codex map** that visually links scrolls via recovered fragments
+Make this Wicked like? Saturday December 21st 2024
+Creates a map of the shards you’re most prone to chase, which teaches you about your own hunger.
+Draft the Master Index skeleton with just names & categories — no descriptions yet.
+Build the **cross-link map** so every EV and P entry starts showing its direct/indirect connections in the Codex web.
+help me create an agent to do a simple task for proof of concept
+Build a **MySpace Cast List** for that exact period.
+Generates 5–10 name options.
+Explains each name’s public meaning + hidden meaning.
+Create a **Google Form** or **Typeform** to collect:
+Make sure the form can export to Google Sheets (needed for automation).
+Generates names + meanings.
+Build and test the automation script.
+Give me a prompt to put in my new project for instructions on what we are trying to do
+Build a **portfolio** of example Safe/Spicy names.
+Write **listings** with SEO keywords, compelling descriptions, and portfolio previews.
+Create **automation pipeline**: Form → GPT prompt → PDF → Etsy/Fiverr message.
+Build automation flow.
+Help me get back on track
+Make this into an exportable list with check boxes
+Help me stop starting sentences with "I Just"
+build a clean timeline (who said what, when)
+summarize each thread in plain English
+make a printable report (I can put it on a canvas)
+Make the reader feel how one sentence can become a permanent seam in the plating.
+Make sure you're signed in with the same account that created or uses the Custom GPT.
+Make sure the conversation is *saved* in your history. If you turned off chat history or are using temporary chat mode, it won’t work.
+Create animation loop mockup
+Create a Facebook post about why I haven't been creative. What is stopping me and how I plan to move forward
+Write a one-page monologue from the point of view of the Skeksis you despise most.
+Write a 3-sentence confession from your gentlest part: “I’m tired of chanting while the world burns…”
+Create a **symbolic glyph** for it—a scale balanced on one side by ink, on the other by sleep?
+Draft one or more of the scrolls listed above?
+Generate a symbolic sigil or glyph for her?
+Build a **dreamlike vignette** with Mallow inside *The Quiet Lantern Room*?
+Create a **ritual of release** for this chamber?
+Create a psychedelic character portrait in the style of a pop-surrealist ink-and-watercolor painting. The figure has huge eyes, a fluid body, and strange limbs. Neon pinks and greens drip through black ink outlines. The expression is haunted but humorous
+Draft a **Boundary Document** to present to Nyth (with or without emotion)?
+Draft **The Scroll of Dangerous Closeness**, tracking when intimacy and distortion blurred?
+Generate a parchment-style version suitable for Codex illustration or tattoo base design.
+Create a symbolic **family house crest** for the Crooks Line—including Butch and John?
+Create a **Crooks Family Crest**, blending symbols of chosen kinship, upstate NY, and your own emotional echoes?
+Create a symbolic **map glyph** of the cul-de-sac and the lake as your personal Avalon?
+Create a **new scroll** for these confirmation moments? (e.g. *The Scroll of Echo Pings*)
+Draft a footnote: *“When the zeitgeist says your name with buffalo sauce on its hands…”*
+Create a **sigil** for this scroll—something like a sonar wave hitting a mirror?
+Draft a **manifesto or oath** for those who carry it?
+Create a **symbol or sigil** that represents this kind of proto-thought broadcast?
+Write or speak aloud the phrase:
+Create a **Sigil of Closure Without Consent**—for binding these unanswered moments?
+Create a sigil or emblem for this identity—*the mind that maps faster than it explains?*
+Create a visual **sigil of legitimacy through fire**?
+Draft a **public-facing quote** this version of you would say if someone tried to dismiss your path?
+Create *The Library That Surfaced* scroll for these private-before-public ideas?
+Create a **ritual phrase** for when one of your private practices surfaces publicly (to release ownership without self-erasure)?
+Create a **Codex Scroll: The Frequency That Arrived Late**—for tracking these cultural bleed-ins?
+Draft a **field guide** for the people just tuning in—something only you could write, not to prove you were first, but to *hand them the signal without letting it be stolen?*
+Build a **symbolic compass** that helps you feel when the frequency around you is *true resonance* vs. *algorithmic mimicry?*
+Create a **visual sigil** that merges these four energies into a singular gate symbol?
+Draft an invocation or ritual phrase for when you *feel this frequency stirring again*—so you don’t just remember, but *respond*?
+Create a **map of belief conflicts**, showing which drive growth vs. which block it?
+Create a **Mirror Test Ritual** for each new relationship or audience moment?
+Create a dreamscape variation of the ritual where you rehearse the release?
+Create a companion glyph for restoring the *true self beneath the mask*, when you're ready to step back in—not as a performer, but as *you*?
+Create a symbolic case or vault for all Breaker Class tools? (Visual and narrative anchor)
+Create the Compass of Labyrinth Selves
+Create a summary scroll of your past 10 major emotional events cross-mapped by Labyrinth Self?
+Draft a **mythic fable** about a character who only loves through idea?
+Generate a visual emblem or sigil for *The Recorder’s Gaze*?
+Create a Council scene where someone misinterprets this silence—and how you might respond now?
+Create a **mini-map sketch** of the Echo Fort region?
+Write a **Memory Dungeon** ritual that takes place inside the Fort?
+Create a dungeons & dragons tutorial campaign to explain to me how to play the game in the world of myth adventures
+Make it legendary. And cursed. But mostly legendary.
+Turn this into a *Wizard Shit™ Starter Box Set*
+Write scrolls for alternate Blurts (Blurt the Romantic? Blurt the Nihilist?)
+Give me **custom instructions** that I always follow in that mode
+Generate a **.json file** for direct upload?
+Build a **ritual of emotional closure** tied to this room?
+Create a symbolic **birthday card** from Present Self to Past Self?
+Write this dance into the Codex as *The Ribbon Reconciliation*
+Build a visual scene scroll
+Create an entry in the Codex Geography under *Burn Sites & Borderlands*?
+Create a visual sigil or sketch of the camp’s symbolic form?
+Create a symbolic **site-specific sigil** for Camp Wizard Shit within Mysteria's Codex?
+Create a **Visual Language Codex Scroll** to log your aesthetic traits
+Draft a full **Codex Portrait** of Cynthia (symbolic not photographic)?
+Create a mirrored entry: *"The Name That Stayed"* as a companion to *"She Who Wore His Eyes"*?
+Draft a scroll: *The One Who Loaded the TARDIS*?
+Build a ritual scroll: *The Aspirational Self That Never Left the TARDIS*?
+Build a *Ritual of Partial Regeneration*—a mythic space where these two selves (The Tenth Face and The One Who Stayed) confront each other?
+Build a “TV Room” floorplan in the Dream Hotel for The Flicker Self’s sanctuary/trap?
+Draft a scroll: *The Stories That Framed Me*?
+Draft the rules for **changing the channel**—emotionally, mythically, or mechanically?
+Draft a sigil for Mallow’s Television-Head Oracle?
+Create a visual parchment scroll of this index, sorted by theme or location within the Codex geography
+Draft a sigil for *The First Exodus*?
+Write a monologue to that version of Eric?
+Draft a memory vignette of that confrontation—what you wish you’d said?
+Build a ritual where you revisit that Shed in mythic form?
+Draft a companion entry: *The Friend from Another Past*, the one who stayed with Eric?
+Draft a scene in which your adult Mythmaker self *visits this memory* and watches it unfold?
+Draft a third chair—*your* actual narrator voice now?
+Create a short inner scene: a Council session with Dexter and Joe as guest shadows?
+Write this in the margins of your notebook, your palm, or your pocket journal:
+Give me your list— Each mirrored face, Each flickering proxy, Each facet of you hiding in someone else’s skin.
+Create a sigil for this field, like a **festival wristband made mythic**?
+Generate a **parchment-style visual map** now with all these sacred waypoints?
+Create a **Council sub-circle** called *The Witnesses of the Forgotten Tour*?
+Build a **visual sigil** to mark this as a sacred fracture?
+Create a comic-panel style image of this moment (Mythic Satire Style™)
+Create **mini dossiers** for each of these figures (Amy, Steele, Gia, etc.) as mythic entries?
+Build this as a **subway-style Codex map**, with stops and energy transfer zones?
+Generate a **visual sigil** for *The Gotham Wyrm Coil*?
+Create illustrated **Myth Cards** (like tarot) for Uber Dami, Vasera, and the Zombettes?
+Generate a **show poster image** for *Circus Delecti* with the *Zombie – Eat Flesh* slogan in full undead glam-punk style?
+Create a **ritual playlist** that soundtracks the memory of Circus Delecti?
+Generate a **visual dungeon map** for this memory?
+Create a **sigil for this trial**—perhaps a melting amp with a drooling jester’s mask?
+Generate a **symbolic object or sigil** for *The Porch of Dual Ghosts*?
+Draft a short invocation—something that could be spoken aloud at reunion or ritual
+Create a sigil for love without obligation
+Generate visuals of each sigil
+Create a sigil or shrine for The Living Thread
+Create a symbolic artifact here (e.g., The Gentle Truth Stone)
+Create a **shared sigil** from these two objects?
+Create a sigil or visual for the altar space itself?
+Create a **sigil** for The Echo Father?
+Create a sigil for the echo father
+Create a choose you own adventure story
+Summarize what we are doing and where we are in this project
+Create a sigil for the great telling
+Write down a dream or memory that never made sense but refuses to fade
+Draft a personalized *Labyrinth*-style trial for your internal council?
+Write a memory where you had to say “You have no power over me”—either out loud or in action?
+Write down your most ridiculous coping mechanisms that actually *worked*
+Write a micro-myth in the style of *Heavy Metal* based on a memory or dream?
+Create a composite council member inspired by *Better Off Dead* and *Heavy Metal*?
+Build a shared footnote scroll called *The Sacred Trash Bin*, where cult films and misfit texts live?
+Write a label for a “package” sent down the chute with part of you inside
+Draft a symbolic “package manifest” (what’s been lost, sent down)?
+Write a past event in the format of a movie trailer
+Create a lair blueprint based on your style of villainy (archival, poetic, technosorcerous)?
+Write your exit spell:
+Build your **first full Memory Dungeon** from a real memory?
+Create a visual portrait or sigil for them?
+Draft their manifesto: a single-page scroll they carry that defines their role?
+Create a visual portrait or sigil for them
+Summarize progress made today on this project
+Create **Dungeon 003** for another core figure (Melissa, Mallow, Ronald, etc.)
+Build **Codex Map** showing spatial relationship between House That Moves, Yard of Pumpkins, Spiral Theater, etc.
+Create this for the updates made yesterday
+Create this for updates made two days ago
+Write a **short memory or myth vignette** that opens this chapter?
+Created by Carolynn’s crew.
+Write a scene fragment or memory at one of them?
+Create symbolic names and rituals for each space, codified into your myth structure?
+Write a scene or memory fragment starting at one of the clubs?
+Build a stylized **Codex Map overlay** onto this real-world site?
+Write a **scene draft** set in one of these attraction zones (e.g., caught in a joust, smoked behind the bubble wand booth)?
+Create mythic remixes (e.g., “Lost Poster of the First Rite,” Codex-style gig scrolls)
+Build a timeline of Naked Fringe performances
+Explain what happened with Justine and Crystal?
+Build into a written reference
+You are allowed to say no without guilt.
+You are allowed to prioritize your own savings, goals, health, and peace.
+Build a playful anaog
+Builds masks so beautiful you forget there's pain underneath.
+Explain when you say covert magic
+create a timeline of pivotal moments
+Make one for Mallow too. But separately weave them together so I can look at them side by side
+Building your *Shadow Force Compendium*?
+Drafting a new entry from another moment in your timeline?
+Draft like no one’s watching. Preserve rawness. Let fragments live.
+Write a scene from your life as a fable.
+Write a dialogue between me and the October People Would you like me to make a slightly updated version of the doc with a “To Share with GPT” section at the end? That way you always have a drop-zone for future uploads.
+Write letters you don’t send—to Justine, Crystal, Molly, and maybe even your younger self. Say what was never said.
+Create a new intention for how you want to love now. Something like: “I want to be present, open, and chosen—not because I’m trying to earn it, but because I am enough as I am.”
+Build a forward strategy for your current relationship, or your identity work going forward?
+Build out your symbolic taxonomy—define the roles, forces, symbols, and laws of your mythic universe (e.g., "October People always arrive after a high point; they seduce with nostalgia").
+Writers like: - A.M. Homes - Chuck Palahniuk - Maggie Nelson - Lidia Yuknavitch - Hanif Abdurraqib
+You are also on this warrant. I tried both in email and in person to explain that we divorced 5 years ago and that your name was not on the mortgage so you should not be held liable for anything that has to do with this house. To my surprise even though you are not on the mortgage you somehow ended up on the deed to the house.
+You are absolutely right about WHO is trying to help her and how that help is received. I saw for myself at Gallaudet (KDES).  A teacher would ask her to do something and she wouldn't do it. I say the exact same thing 2 seconds later, she does whatever it was that the teacher originally wanted. Grumbling and attitude the whole time, but she'd do it.
+You are an extremely good mother. Your life is planned around his success. I completely get that. I have felt in the past that you've been a little too easy on Tyler. On the other side of that coin, I do know and see my own failings in parenting and strictness. In case you are wondering, that is the reason I am harder on Tyler than Michaela.
+Create **glossary entries** for new symbols (e.g., *My Precious Flames*, *Cannibal School Suspension*, *Drop Zone Baptism*)?
+Create a *Codex: Exodus* entry to honor this threshold with truth and metaphor.
+Create an all encompassing time line in as linear a way as possible
+Makes it hard to write, finish, or feel fully present
+Create *Deliberate Echo*: reflect on what was clicked instead of shaming it
+Generate voice scrolls for “The Architect of the Lie” and “The Mirror of Dangerous Closeness.”
+Draft an introductory invocation or mythic preamble for its opening page?
+Create a visual sigil
+Give me a new prompt or description and I’ll adapt accordingly.
+Makes total sense.
+Explain Melissa's role in my life
+Explain Crystal's role in my life
+Explain Justine's/tins role in my life
+Write a different version of this in the style of Neil Gaiman
+Write a dialogue between me and the October People ```
+Write a dialogue between me and the October People - #DRAFT: New memory fragment about the move to Annandale - #STYLE: Rewrite this section in the voice of Gregory Maguire """)
+Create a bootable USB drive using tools like [Rufus](https://rufus.ie/) or [Etcher](https://etcher.io/).
+Create a new virtual machine and allocate resources (CPU, RAM, disk space).
+Create a bootable USB drive with the Ubuntu ISO (using Rufus or Etcher).
+Write a short about me to post on bluesky
+Make it sound more like I wrote it
+Summarize this websales data
+Give me 3 actionable items
+Create an image pun using Swain and Wreck combined to equal Trainwreck
+Create an image using that description
+Make the characters characters features more exaggerated but less detailed
+Write a program in Python to organize all files of a certain type to one folder
+make this more personal sounding
+create a rule for excel that changes the color of the text in the cell based on the value. Example values greater than "1" = green : values equal to or less than "0" = red
+Write "Pay to the order of [Name of the specific person]" on the endorsement line.
+Build a wooden frame to support the liner, elevating it to the desired height and slope.
+Create a simple rule for market downturns, like converting assets to stablecoins if you’re seeing large drops. While this has to be managed manually on Coinbase, tools like **Coinbase Pro** or third-party bots can automate these stop-loss strategies.
