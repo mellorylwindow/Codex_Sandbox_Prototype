@@ -265,3 +265,9 @@ notes/_inbox/
 # TikTok generated outputs
 notes/tiktok/recording_picks/
 notes/tiktok/library_index.json
+
+# tax PDFs / statements (private)
+notes/tax/
+tax_intake/
+**/*.ofx
+**/*.qfx
