@@ -1,0 +1,8 @@
+{
+  "name": "Balanced (default)",
+  "slug": "balanced_default",
+  "take": 12,
+  "min_score": 0.25,
+  "teleprompter_top": 3,
+  "notes": "General purpose: hooks + clarity + usable outputs."
+}

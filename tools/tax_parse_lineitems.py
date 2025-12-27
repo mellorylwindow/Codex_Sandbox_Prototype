@@ -1,270 +1,246 @@
+#!/usr/bin/env python3
+"""
+tax_parse_lineitems.py — v2 (works with receipt_asset manifest + sha256-keyed text)
+
+Inputs:
+- manifest.jsonl rows with:
+    sha256, kind=receipt_asset, status=ingested|duplicate, dest_rel (maybe missing), src_rel
+- extracted text at:
+    tax_intake/30_extracted/text/<sha256>.txt
+
+Outputs:
+- tax_intake/30_extracted/lines/<sha256>.json
+
+Design goals:
+- schema tolerant
+- always emits a per-doc json (even if no line-items found)
+- keeps parsing simple + conservative (you can upgrade heuristics later)
+"""
+
 from __future__ import annotations
 
 import argparse
 import json
 import re
-from dataclasses import dataclass, asdict
-from datetime import datetime
+from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import Optional, List, Tuple
+from typing import Any, Dict, List, Optional
 
-# Reuse-ish patterns (keep local so this script is standalone)
-MONEY_RE = re.compile(r"(?<!\w)(\$?\s*\d{1,3}(?:,\d{3})*(?:\.\d{2})|\$?\s*\d+(?:\.\d{2}))(?!\w)")
-DATE_RES = [
-    re.compile(r"(?<!\d)(\d{1,2})[/-](\d{1,2})[/-](\d{2,4})(?!\d)"),   # MM/DD/YYYY
-    re.compile(r"(?<!\d)(\d{4})[/-](\d{1,2})[/-](\d{1,2})(?!\d)"),     # YYYY-MM-DD
-]
-PAGE_SPLIT_RE = re.compile(r"\n\s*===== PAGE (\d+)\s*=====\s*\n", re.IGNORECASE)
 
-KEY_DATE = ("DATE OF SERVICE", "SERVICE DATE", "DOS", "VISIT DATE", "DATE:")
-KEY_AMT = ("TOTAL", "AMOUNT", "PAID", "CHARGE", "BALANCE DUE", "DUE", "PAYMENT")
+def utc_now_iso() -> str:
+    return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
-def norm_money(s: str) -> Optional[float]:
-    s = s.strip().replace("$", "").replace(" ", "").replace(",", "")
-    try:
-        return float(s)
-    except Exception:
-        return None
 
-def parse_date_any(text: str) -> Optional[str]:
-    for rex in DATE_RES:
-        for m in rex.finditer(text):
-            g = m.groups()
-            try:
-                if len(g) == 3 and len(g[0]) == 4:
-                    y, mo, d = int(g[0]), int(g[1]), int(g[2])
-                else:
-                    mo, d = int(g[0]), int(g[1])
-                    y = int(g[2])
-                    if y < 100:
-                        y += 2000 if y < 70 else 1900
-                return datetime(y, mo, d).strftime("%Y-%m-%d")
-            except Exception:
-                continue
-    return None
+def repo_root() -> Path:
+    return Path(__file__).resolve().parents[1]
 
-def guess_provider(text: str) -> Optional[str]:
-    bad = ("INVOICE", "RECEIPT", "STATEMENT", "THANK YOU", "TOTAL", "AMOUNT", "DATE", "PAGE")
-    for ln in text.splitlines():
-        s = ln.strip()
-        if not s:
-            continue
-        u = s.upper()
-        if any(b in u for b in bad) and len(s) < 40:
-            continue
-        if len(s) > 2:
-            return s[:120]
-    return None
-
-def split_pages(text: str) -> List[Tuple[Optional[int], str]]:
-    """
-    Returns list of (page_number, page_text).
-    If no page markers exist, returns [(None, text)].
-    """
-    if "===== PAGE" not in text:
-        return [(None, text)]
-
-    parts = PAGE_SPLIT_RE.split(text)
-    # split yields: [pre, page1num, page1text, page2num, page2text, ...]
-    out: List[Tuple[Optional[int], str]] = []
-    if parts and parts[0].strip():
-        out.append((None, parts[0]))
-    i = 1
-    while i + 1 < len(parts):
-        try:
-            pno = int(parts[i])
-        except Exception:
-            pno = None
-        ptxt = parts[i + 1]
-        out.append((pno, ptxt))
-        i += 2
-    return [(p, t.strip()) for (p, t) in out if t.strip()]
-
-def find_best_amount_near(lines: List[str], start_idx: int) -> Optional[float]:
-    """
-    Look forward a few lines for the most 'total-ish' amount, else max amount.
-    """
-    window = lines[start_idx:start_idx + 12]
-    candidates: List[Tuple[float, str]] = []
-    totalish: List[Tuple[float, str]] = []
-
-    for ln in window:
-        for m in MONEY_RE.findall(ln):
-            val = norm_money(m)
-            if val is None:
-                continue
-            candidates.append((val, ln))
-            u = ln.upper()
-            if any(k in u for k in KEY_AMT):
-                totalish.append((val, ln))
-
-    if totalish:
-        return max(totalish, key=lambda x: x[0])[0]
-    if candidates:
-        return max(candidates, key=lambda x: x[0])[0]
-    return None
-
-def guess_service_desc(lines: List[str], i: int) -> str:
-    """
-    Very simple: use the line containing the date, or next non-empty line.
-    """
-    base = lines[i].strip()
-    if base and len(base) <= 140:
-        return base
-    for j in range(i + 1, min(i + 6, len(lines))):
-        s = lines[j].strip()
-        if s and len(s) <= 140:
-            return s
-    return ""
 
 @dataclass
-class LineItem:
-    line_id: str
-    doc_id: str
-    page: Optional[int]
-    provider_guess: str
-    service_date_guess: str
-    amount_guess: Optional[float]
-    service_desc_guess: str
-    confidence: str
+class Row:
+    sha256: str
+    status: str
+    kind: str
+    batch: str
+    original_name: str
+    dest_rel: str
+    src_rel: str
 
-def main() -> int:
+    @staticmethod
+    def from_dict(d: Dict[str, Any]) -> "Row":
+        return Row(
+            sha256=str(d.get("sha256", "")).strip(),
+            status=str(d.get("status", "")).strip(),
+            kind=str(d.get("kind", "")).strip(),
+            batch=str(d.get("batch", "")).strip(),
+            original_name=str(d.get("original_name", "")).strip(),
+            dest_rel=str(d.get("dest_rel", "")).strip(),
+            src_rel=str(d.get("src_rel", "")).strip(),
+        )
+
+
+def read_manifest(path: Path) -> List[Row]:
+    rows: List[Row] = []
+    for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
+        if not line.strip():
+            continue
+        rows.append(Row.from_dict(json.loads(line)))
+    return rows
+
+
+_money_re = re.compile(r"(?<!\w)\$?\s*([0-9]{1,3}(?:,[0-9]{3})*|[0-9]+)\.(\d{2})(?!\w)")
+_date_re = re.compile(
+    r"\b((?:20)?\d{2})[-/](\d{1,2})[-/](\d{1,2})\b"   # 2025-12-25 or 25-12-25 etc
+    r"|\b(\d{1,2})[-/](\d{1,2})[-/](?:20)?(\d{2})\b" # 12/25/25 or 12/25/2025
+)
+
+def norm_amount(m: re.Match) -> float:
+    whole = m.group(1).replace(",", "")
+    cents = m.group(2)
+    return float(f"{whole}.{cents}")
+
+
+def parse_vendor(text: str) -> str:
+    # first “real” line that isn’t just noise
+    for line in (l.strip() for l in text.splitlines()):
+        if not line:
+            continue
+        if len(line) < 2:
+            continue
+        # skip lines that are mostly digits or just totals
+        if sum(ch.isdigit() for ch in line) > max(6, len(line) * 0.6):
+            continue
+        return line[:80]
+    return ""
+
+
+def parse_dates(text: str) -> List[str]:
+    found: List[str] = []
+    for m in _date_re.finditer(text):
+        if m.group(1):  # yyyy-mm-dd
+            y = int(m.group(1))
+            mo = int(m.group(2))
+            d = int(m.group(3))
+        else:           # mm-dd-yy(yy)
+            mo = int(m.group(4))
+            d = int(m.group(5))
+            yy = int(m.group(6))
+            y = 2000 + yy if yy < 100 else yy
+        try:
+            dt = datetime(y, mo, d)
+            found.append(dt.date().isoformat())
+        except Exception:
+            continue
+    # de-dupe preserving order
+    out: List[str] = []
+    for x in found:
+        if x not in out:
+            out.append(x)
+    return out
+
+
+def parse_amounts(text: str) -> List[float]:
+    vals = [norm_amount(m) for m in _money_re.finditer(text)]
+    # de-dupe preserving order
+    out: List[float] = []
+    for v in vals:
+        if v not in out:
+            out.append(v)
+    return out
+
+
+def guess_total(text: str, amounts: List[float]) -> Optional[float]:
+    # conservative: if “total” line exists, pick the last money value near it
+    lines = text.splitlines()
+    for i, line in enumerate(lines):
+        if "total" in line.lower():
+            # search line + next 2 lines for amounts
+            window = "\n".join(lines[i:i+3])
+            window_vals = [norm_amount(m) for m in _money_re.finditer(window)]
+            if window_vals:
+                return window_vals[-1]
+    # fallback: biggest amount (often total)
+    if amounts:
+        return max(amounts)
+    return None
+
+
+def write_json(path: Path, obj: Dict[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(obj, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+
+def main(argv: Optional[List[str]] = None) -> int:
     ap = argparse.ArgumentParser(description="Parse extracted text into line-items per document.")
-    ap.add_argument("--manifest", default="tax_intake/index/manifest.jsonl")
+    ap.add_argument("--manifest", required=True)
     ap.add_argument("--text-dir", default="tax_intake/30_extracted/text")
     ap.add_argument("--out-dir", default="tax_intake/30_extracted/lines")
     ap.add_argument("--only-canonical", action="store_true")
-    ap.add_argument("--force", action="store_true", help="Rebuild lines json even if it exists.")
-    args = ap.parse_args()
+    ap.add_argument("--force", action="store_true")
+    ap.add_argument("--debug", action="store_true")
+    args = ap.parse_args(argv)
 
-    manifest = Path(args.manifest)
-    text_dir = Path(args.text_dir)
-    out_dir = Path(args.out_dir)
+    repo = repo_root()
+    man = Path(args.manifest)
+    if not man.is_absolute():
+        man = (repo / man).resolve()
+
+    text_dir = (repo / args.text_dir).resolve()
+    out_dir = (repo / args.out_dir).resolve()
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    if not manifest.exists():
-        print(f"ERROR: manifest not found: {manifest}")
-        return 2
+    rows = read_manifest(man)
+    wrote_docs = 0
+    skipped = 0
+    missing_text = 0
 
-    rows = []
-    with manifest.open("r", encoding="utf-8") as f:
-        for line in f:
-            line = line.strip()
-            if line:
-                rows.append(json.loads(line))
-
-    made = 0
     for r in rows:
-        if args.only_canonical and r.get("duplicate_of"):
+        if not r.sha256:
+            continue
+        if args.only_canonical and r.status.lower() == "duplicate":
             continue
 
-        doc_id = (r.get("doc_id") or "").strip()
-        if not doc_id:
-            continue
+        txt_path = text_dir / f"{r.sha256}.txt"
+        out_path = out_dir / f"{r.sha256}.json"
 
-        txt_path = text_dir / f"{doc_id}.txt"
-        if not txt_path.exists():
-            continue
-
-        out_path = out_dir / f"{doc_id}.lines.json"
         if out_path.exists() and not args.force:
+            skipped += 1
             continue
 
-        text = txt_path.read_text(encoding="utf-8", errors="replace").strip()
-        if not text:
-            out_path.write_text("[]\n", encoding="utf-8")
-            made += 1
+        if not txt_path.exists():
+            missing_text += 1
+            write_json(out_path, {
+                "ok": False,
+                "error": "Missing extracted text file",
+                "sha256": r.sha256,
+                "status": r.status,
+                "kind": r.kind,
+                "batch": r.batch,
+                "original_name": r.original_name,
+                "text_path": str(txt_path),
+                "parsed_at": utc_now_iso(),
+                "vendor": "",
+                "dates": [],
+                "amounts": [],
+                "total_guess": None,
+                "line_items": [],
+            })
+            wrote_docs += 1
             continue
 
-        provider = guess_provider(text) or ""
-        pages = split_pages(text)
+        text = txt_path.read_text(encoding="utf-8", errors="replace")
+        vendor = parse_vendor(text)
+        dates = parse_dates(text)
+        amounts = parse_amounts(text)
+        total_guess = guess_total(text, amounts)
 
-        items: List[LineItem] = []
-        idx = 0
+        # For now: we store amounts as “candidates” and leave actual itemization for later.
+        write_json(out_path, {
+            "ok": True,
+            "error": None,
+            "sha256": r.sha256,
+            "status": r.status,
+            "kind": r.kind,
+            "batch": r.batch,
+            "original_name": r.original_name,
+            "text_path": str(txt_path),
+            "parsed_at": utc_now_iso(),
+            "vendor": vendor,
+            "dates": dates,
+            "amounts": amounts,
+            "total_guess": total_guess,
+            "line_items": [],  # later: real item parsing
+        })
+        wrote_docs += 1
 
-        for (page_no, ptxt) in pages:
-            lines = [ln.rstrip() for ln in ptxt.splitlines() if ln.strip()]
-            if not lines:
-                continue
+        if args.debug and wrote_docs <= 3:
+            print(f"[debug] {r.sha256[:12]} vendor={vendor!r} dates={dates[:2]} total={total_guess}")
 
-            # Find candidate date lines (or keyword lines)
-            date_line_idxs: List[int] = []
-            for i, ln in enumerate(lines):
-                u = ln.upper()
-                if any(k in u for k in KEY_DATE) or parse_date_any(ln):
-                    # only treat as date line if there's a parseable date nearby
-                    if parse_date_any(ln) or parse_date_any(" ".join(lines[i:i+2])):
-                        date_line_idxs.append(i)
-
-            # If we don't find multiple, we still produce 1 item (doc-level)
-            if not date_line_idxs:
-                # doc-level amount/date
-                dt = parse_date_any(ptxt) or ""
-                # amount: scan entire page for total-ish, else max
-                page_amount = None
-                totalish = []
-                allcands = []
-                for ln in lines[:250]:
-                    for m in MONEY_RE.findall(ln):
-                        val = norm_money(m)
-                        if val is None:
-                            continue
-                        allcands.append(val)
-                        if any(k in ln.upper() for k in KEY_AMT):
-                            totalish.append(val)
-                if totalish:
-                    page_amount = max(totalish)
-                elif allcands:
-                    page_amount = max(allcands)
-
-                conf = "med" if (dt or page_amount is not None) else "low"
-                items.append(LineItem(
-                    line_id=f"{doc_id}:{idx:03d}",
-                    doc_id=doc_id,
-                    page=page_no,
-                    provider_guess=provider,
-                    service_date_guess=dt,
-                    amount_guess=page_amount,
-                    service_desc_guess="",
-                    confidence=conf,
-                ))
-                idx += 1
-                continue
-
-            # Build one item per found date line
-            for i in date_line_idxs:
-                block = "\n".join(lines[i:i+12])
-                dt = parse_date_any(block) or parse_date_any(lines[i]) or ""
-                amt = find_best_amount_near(lines, i)
-                desc = guess_service_desc(lines, i)
-
-                score = 0
-                score += 1 if provider else 0
-                score += 1 if dt else 0
-                score += 1 if amt is not None else 0
-                conf = {3: "high", 2: "med", 1: "low", 0: "none"}[score]
-
-                items.append(LineItem(
-                    line_id=f"{doc_id}:{idx:03d}",
-                    doc_id=doc_id,
-                    page=page_no,
-                    provider_guess=provider,
-                    service_date_guess=dt,
-                    amount_guess=amt,
-                    service_desc_guess=desc,
-                    confidence=conf,
-                ))
-                idx += 1
-
-        out_path.write_text(
-            json.dumps([asdict(x) for x in items], ensure_ascii=False, indent=2) + "\n",
-            encoding="utf-8",
-            newline="\n",
-        )
-        made += 1
-
-    print(f"Wrote line-items for {made} documents into: {out_dir}")
+    print(f"Wrote line-items for {wrote_docs} documents into: {out_dir}")
+    if args.debug:
+        print(f"[debug] skipped_existing={skipped} missing_text={missing_text} manifest_rows={len(rows)}")
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())

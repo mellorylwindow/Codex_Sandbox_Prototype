@@ -1,182 +1,218 @@
+#!/usr/bin/env python3
+"""
+tax_export_xlsx.py — v2 (doc-level export, schema tolerant)
+
+Reads:
+- manifest.jsonl rows with:
+    sha256, status, kind=receipt_asset, batch, original_name, dest_rel/src_rel
+- parsed line json at:
+    tax_intake/30_extracted/lines/<sha256>.json
+
+Writes:
+- Excel with 1 row per document, even if parsing is incomplete.
+
+Goal:
+- Never produce "Rows: 0" if there are documents.
+"""
+
 from __future__ import annotations
 
 import argparse
 import json
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Dict, List, Optional
 
 from openpyxl import Workbook
 from openpyxl.utils import get_column_letter
 
 
-def read_manifest_jsonl(path: Path) -> list[dict]:
-    rows: list[dict] = []
-    with path.open("r", encoding="utf-8") as f:
-        for line in f:
-            line = line.strip()
-            if not line:
-                continue
-            rows.append(json.loads(line))
+def repo_root() -> Path:
+    return Path(__file__).resolve().parents[1]
+
+
+def utc_now_iso() -> str:
+    return datetime.now(timezone.utc).isoformat(timespec="seconds")
+
+
+def read_jsonl(path: Path) -> List[Dict[str, Any]]:
+    rows: List[Dict[str, Any]] = []
+    txt = path.read_text(encoding="utf-8", errors="replace")
+    for line in txt.splitlines():
+        if not line.strip():
+            continue
+        rows.append(json.loads(line))
     return rows
 
 
-def tax_year_from_date(iso_date: Optional[str]) -> Optional[int]:
-    if not iso_date:
-        return None
-    try:
-        return int(iso_date.split("-")[0])
-    except Exception:
-        return None
+def safe_get(d: Dict[str, Any], key: str, default: Any = "") -> Any:
+    v = d.get(key, default)
+    return default if v is None else v
 
 
-def excerpt(text: str, max_chars: int = 240) -> str:
-    t = " ".join(text.split())
-    return (t[:max_chars] + "…") if len(t) > max_chars else t
+def first_date(dates: Any) -> str:
+    if isinstance(dates, list) and dates:
+        return str(dates[0])
+    return ""
 
 
-def load_text(text_dir: Path, doc_id: str) -> str:
-    p = text_dir / f"{doc_id}.txt"
-    if not p.exists():
+def join_amounts(amounts: Any, limit: int = 10) -> str:
+    if not isinstance(amounts, list) or not amounts:
         return ""
-    return p.read_text(encoding="utf-8", errors="replace")
+    vals = []
+    for a in amounts[:limit]:
+        try:
+            vals.append(f"{float(a):.2f}")
+        except Exception:
+            vals.append(str(a))
+    if len(amounts) > limit:
+        vals.append("…")
+    return ", ".join(vals)
 
 
-def load_lineitems(lines_dir: Path, doc_id: str) -> list[dict[str, Any]]:
-    p = lines_dir / f"{doc_id}.lines.json"
-    if not p.exists():
-        return []
-    try:
-        data = json.loads(p.read_text(encoding="utf-8", errors="replace"))
-        return data if isinstance(data, list) else []
-    except Exception:
-        return []
-
-
-def autosize(ws) -> None:
+def autosize(ws, max_width: int = 60) -> None:
     for col in range(1, ws.max_column + 1):
-        max_len = 0
-        col_letter = get_column_letter(col)
+        letter = get_column_letter(col)
+        best = 0
         for row in range(1, ws.max_row + 1):
             v = ws.cell(row=row, column=col).value
             if v is None:
                 continue
-            s = str(v)
-            if len(s) > max_len:
-                max_len = len(s)
-        ws.column_dimensions[col_letter].width = min(max(10, max_len + 2), 60)
+            best = max(best, len(str(v)))
+        ws.column_dimensions[letter].width = min(max(10, best + 2), max_width)
 
 
-def main() -> int:
-    ap = argparse.ArgumentParser(description="Export tax review spreadsheet (line-item aware).")
-    ap.add_argument("--manifest", default="tax_intake/index/manifest.jsonl")
+def main(argv: Optional[List[str]] = None) -> int:
+    ap = argparse.ArgumentParser(description="Export tax review spreadsheet (doc-level).")
+    ap.add_argument("--manifest", required=True)
     ap.add_argument("--text-dir", default="tax_intake/30_extracted/text")
     ap.add_argument("--lines-dir", default="tax_intake/30_extracted/lines")
     ap.add_argument("--out", default="tax_intake/40_reports/tax_lines.xlsx")
-    ap.add_argument("--only-canonical", action="store_true", help="Skip duplicates; include only canonical docs.")
-    args = ap.parse_args()
+    ap.add_argument("--only-canonical", action="store_true", help="Skip duplicates; include only ingested.")
+    ap.add_argument("--debug", action="store_true")
+    args = ap.parse_args(argv)
 
-    manifest_path = Path(args.manifest)
-    text_dir = Path(args.text_dir)
-    lines_dir = Path(args.lines_dir)
+    repo = repo_root()
+
+    man = Path(args.manifest)
+    if not man.is_absolute():
+        man = (repo / man).resolve()
+
+    text_dir = (repo / args.text_dir).resolve()
+    lines_dir = (repo / args.lines_dir).resolve()
+
     out_path = Path(args.out)
+    if not out_path.is_absolute():
+        out_path = (repo / out_path).resolve()
+    out_path.parent.mkdir(parents=True, exist_ok=True)
 
-    if not manifest_path.exists():
-        print(f"ERROR: manifest not found: {manifest_path}")
-        return 2
-
-    rows = read_manifest_jsonl(manifest_path)
+    manifest_rows = read_jsonl(man)
 
     wb = Workbook()
     ws = wb.active
-    ws.title = "tax_lines"
+    ws.title = "Docs"
 
     headers = [
-        "line_id",
-        "doc_id",
-        "page",
-        "canonical_path",
-        "file_type",
-        "provider",
-        "service_date",
-        "amount",
-        "service_desc",
-        "tax_year",
-        "duplicate_of",
-        "confidence",
-        "excerpt",
-        "notes",
+        "sha256",
+        "status",
+        "kind",
+        "batch",
+        "original_name",
+        "date_guess",
+        "vendor_guess",
+        "total_guess",
+        "amount_candidates",
+        "amount_count",
+        "ok",
+        "error",
+        "text_file",
+        "lines_file",
+        "src_rel",
+        "dest_rel",
+        "exported_at_utc",
     ]
     ws.append(headers)
 
-    out_rows = 0
+    row_count = 0
 
-    for r in rows:
-        doc_id = (r.get("doc_id") or "").strip()
-        canonical_path = (r.get("canonical_path") or "").strip()
-        duplicate_of = r.get("duplicate_of")
-
-        if args.only_canonical and duplicate_of:
-            continue
-        if not doc_id or not canonical_path:
+    for r in manifest_rows:
+        sha = str(safe_get(r, "sha256", "")).strip()
+        if not sha:
             continue
 
-        ext = Path(canonical_path).suffix.lower().lstrip(".")
-        doc_text = load_text(text_dir, doc_id)
-        items = load_lineitems(lines_dir, doc_id)
+        status = str(safe_get(r, "status", "")).strip().lower()
+        if args.only_canonical and status == "duplicate":
+            continue
 
-        if items:
-            for it in items:
-                service_date = (it.get("service_date_guess") or "").strip()
-                amount = it.get("amount_guess")
-                provider = (it.get("provider_guess") or "").strip()
-                service_desc = (it.get("service_desc_guess") or "").strip()
-                page = it.get("page")
-                confidence = (it.get("confidence") or "").strip()
-                tax_year = tax_year_from_date(service_date)
+        kind = str(safe_get(r, "kind", "")).strip()
+        batch = str(safe_get(r, "batch", "")).strip()
+        original_name = str(safe_get(r, "original_name", "")).strip()
+        src_rel = str(safe_get(r, "src_rel", "")).strip()
+        dest_rel = str(safe_get(r, "dest_rel", "")).strip()
 
-                ws.append([
-                    it.get("line_id") or "",
-                    doc_id,
-                    page if page is not None else "",
-                    canonical_path,
-                    ext,
-                    provider,
-                    service_date,
-                    amount if amount is not None else "",
-                    service_desc,
-                    tax_year if tax_year is not None else "",
-                    duplicate_of or "",
-                    confidence,
-                    excerpt(doc_text),
-                    "",
-                ])
-                out_rows += 1
-        else:
-            # fallback: one row per doc (still useful if parsing didn’t find items)
-            ws.append([
-                f"{doc_id}:000",
-                doc_id,
-                "",
-                canonical_path,
-                ext,
-                "",
-                "",
-                "",
-                "",
-                "",
-                duplicate_of or "",
-                "none",
-                excerpt(doc_text),
-                "",
-            ])
-            out_rows += 1
+        text_file = text_dir / f"{sha}.txt"
+        lines_file = lines_dir / f"{sha}.json"
+
+        # Defaults if line json missing
+        ok = False
+        err = "Missing lines JSON"
+        vendor = ""
+        date_guess = ""
+        total_guess: Any = None
+        amounts: Any = []
+
+        if lines_file.exists():
+            try:
+                lj = json.loads(lines_file.read_text(encoding="utf-8", errors="replace"))
+                ok = bool(lj.get("ok", False))
+                err = lj.get("error") or ""
+                vendor = str(lj.get("vendor", "") or lj.get("vendor_guess", "") or "").strip()
+                date_guess = first_date(lj.get("dates"))
+                total_guess = lj.get("total_guess", None)
+                amounts = lj.get("amounts", []) or []
+            except Exception as e:
+                ok = False
+                err = f"Failed reading lines JSON: {e!r}"
+
+        ws.append([
+            sha,
+            status,
+            kind,
+            batch,
+            original_name,
+            date_guess,
+            vendor,
+            total_guess,
+            join_amounts(amounts),
+            (len(amounts) if isinstance(amounts, list) else 0),
+            ok,
+            err,
+            str(text_file) if text_file.exists() else "",
+            str(lines_file) if lines_file.exists() else "",
+            src_rel,
+            dest_rel,
+            utc_now_iso(),
+        ])
+        row_count += 1
+
+        if args.debug and row_count <= 3:
+            print(f"[debug] export row {row_count}: {sha[:12]} vendor={vendor!r} date={date_guess!r} total={total_guess!r}")
 
     autosize(ws)
-    out_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # Simple README sheet for sanity
+    ws2 = wb.create_sheet("Info")
+    ws2.append(["generated_at_utc", utc_now_iso()])
+    ws2.append(["manifest", str(man)])
+    ws2.append(["text_dir", str(text_dir)])
+    ws2.append(["lines_dir", str(lines_dir)])
+    ws2.append(["rows_exported", row_count])
+    ws2.append(["only_canonical", bool(args.only_canonical)])
+
     wb.save(out_path)
 
     print(f"Wrote: {out_path}")
-    print(f"Rows:  {out_rows}")
+    print(f"Rows:  {row_count}")
     return 0
 
 

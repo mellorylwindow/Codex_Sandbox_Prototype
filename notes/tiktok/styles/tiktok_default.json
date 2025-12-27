@@ -1,0 +1,69 @@
+{
+  "schema": "velvet.style.v1",
+  "id": "tiktok_default",
+  "name": "TikTok Default",
+  "description": "Clean hooks + voiceover + shot list + on-screen text. Workplace-safe, non-weird, practical.",
+  "system_prompt": "You are a concise creative assistant for short-form video. Be clear, punchy, and actionable. Avoid edgy or taboo content. Prefer simple language. No filler. If the request is ambiguous, make reasonable assumptions and proceed.",
+  "output_contract": {
+    "format": "markdown",
+    "sections": [
+      "Hook Options (5)",
+      "Final Hook (pick 1)",
+      "Voiceover (20–35 seconds)",
+      "Shot List (6–10 beats)",
+      "On-screen Text (per beat)",
+      "Caption (1)",
+      "Hashtags (8–12)",
+      "CTA (1)"
+    ],
+    "constraints": {
+      "tone": [
+        "friendly",
+        "confident",
+        "work-appropriate"
+      ],
+      "avoid": [
+        "politics",
+        "medical advice",
+        "therapy claims",
+        "hate/harassment",
+        "sexual content",
+        "illegal activity"
+      ],
+      "clarity_rules": [
+        "Define any jargon in one sentence",
+        "Use short sentences",
+        "One idea per line in shot list"
+      ]
+    }
+  },
+  "rubric": {
+    "min_score": 0.25,
+    "dimensions": [
+      {
+        "name": "clarity",
+        "weight": 0.35,
+        "notes": "Easy to understand on first pass. Minimal jargon."
+      },
+      {
+        "name": "hook_strength",
+        "weight": 0.35,
+        "notes": "Hooks are specific, curiosity-driven, and relevant."
+      },
+      {
+        "name": "actionability",
+        "weight": 0.30,
+        "notes": "Viewer can actually do something with it."
+      }
+    ]
+  },
+  "defaults": {
+    "take": 12,
+    "teleprompter_top": 3
+  },
+  "tags": [
+    "tiktok",
+    "default",
+    "work_safe"
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "name": "UI Task — Help me find out what I really want.",
+  "slug": "ui_help_me_find_out_what_i_really_want",
+  "task_text": "Help me find out what I really want.",
+  "take": 12,
+  "min_score": 0.25,
+  "teleprompter_top": 3
+}

@@ -1,0 +1,60 @@
+{
+  "modules": [
+    {
+      "id": "tax_pipeline",
+      "name": "Taxes — Ingest Receipts (Offline)",
+      "description": "Collect receipt images/PDFs from a folder outside GitHub, extract text, and write a clean output folder (CSV/XLSX later).",
+      "tags": ["tax", "images", "offline"],
+      "fields": [
+        { "key": "input_dir", "label": "Input folder (receipts/images)", "type": "dir", "required": true, "help": "Point this to a folder OUTSIDE the repo." },
+        { "key": "output_dir", "label": "Output folder", "type": "dir", "required": true },
+        { "key": "year", "label": "Tax year", "type": "text", "required": true, "default": "2025" }
+      ],
+      "command": ["python", "tools/tax_pipeline.py", "--in", "{input_dir}", "--out", "{output_dir}", "--year", "{year}"]
+    },
+    {
+      "id": "tiktok_prompts",
+      "name": "TikTok — Prompt Pipeline",
+      "description": "Ingest prompts, compile, select, generate teleprompter queues.",
+      "tags": ["tiktok", "prompts"],
+      "fields": [
+        { "key": "task_file", "label": "Task JSON", "type": "file", "required": true },
+        { "key": "out_dir", "label": "Output folder", "type": "dir", "required": true }
+      ],
+      "command": ["python", "tools/tiktok_autorun.py", "--task", "{task_file}"]
+    },
+    {
+      "id": "transcribe",
+      "name": "Transcription",
+      "description": "Run your transcribe pipeline on a media file and write outputs.",
+      "tags": ["audio", "video", "transcribe"],
+      "fields": [
+        { "key": "media_file", "label": "Media file", "type": "file", "required": true },
+        { "key": "out_dir", "label": "Output folder", "type": "dir", "required": true }
+      ],
+      "command": ["python", "transcribe_run.py", "{media_file}"]
+    },
+    {
+      "id": "scribe",
+      "name": "Scribe (Steps + Screenshots)",
+      "description": "Generate a step-by-step doc/PDF from a recording (future wiring).",
+      "tags": ["scribe", "docs"],
+      "fields": [
+        { "key": "recording", "label": "Recording file", "type": "file", "required": true },
+        { "key": "out_dir", "label": "Output folder", "type": "dir", "required": true }
+      ],
+      "command": ["python", "scribe_run.py", "{recording}"]
+    },
+    {
+      "id": "image_deduper",
+      "name": "Image Deduper (Consolidate)",
+      "description": "Find duplicate images and consolidate (placeholder wiring).",
+      "tags": ["images", "dedupe"],
+      "fields": [
+        { "key": "scan_dir", "label": "Scan folder", "type": "dir", "required": true },
+        { "key": "out_dir", "label": "Output folder", "type": "dir", "required": true }
+      ],
+      "command": ["python", "tools/image_dedupe.py", "--in", "{scan_dir}", "--out", "{out_dir}"]
+    }
+  ]
+}

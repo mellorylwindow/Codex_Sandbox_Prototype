@@ -1,0 +1,8 @@
+{
+  "name": "How-to (step-by-step)",
+  "slug": "how_to_steps",
+  "take": 10,
+  "min_score": 0.3,
+  "teleprompter_top": 3,
+  "notes": "Structured, instructional, cleaner formatting."
+}

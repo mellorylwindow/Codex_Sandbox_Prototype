@@ -246,3 +246,15 @@ out/images/
 **/*.jpg
 **/*.jpeg
 **/*.webp
+
+# Tax ingest (local only)
+notes/tax/images_in/
+out/tax/
+
+# Private imports (ChatGPT exports, Facebook exports, etc.)
+notes/imports_private/**
+!notes/imports_private.README.md
+!notes/imports_private/**/.keep
+
+# --- junk files that sometimes appear from copy/paste or drag/drop ---
+=*,        # e.g. "=2.2," / "=3.1,"
