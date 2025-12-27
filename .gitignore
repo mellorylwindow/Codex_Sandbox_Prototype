@@ -258,3 +258,10 @@ notes/imports_private/**
 
 # --- junk files that sometimes appear from copy/paste or drag/drop ---
 =*,        # e.g. "=2.2," / "=3.1,"
+
+# Local inbox / scratch drops
+notes/_inbox/
+
+# TikTok generated outputs
+notes/tiktok/recording_picks/
+notes/tiktok/library_index.json
