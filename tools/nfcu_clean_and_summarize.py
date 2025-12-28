@@ -1,18 +1,22 @@
 #!/usr/bin/env python3
 """
-Step 10: NFCU — Clean + Summarize (v2)
+Step 10: Clean + Summarize (NFCU)
 
-Goals:
-- Keep real transactions; drop statement noise (beginning/ending balance blocks, avg daily balance chatter, etc.)
-- Produce:
-    notes/tax/work/parsed/2025/nfcu_transactions.cleaned.csv
-    notes/tax/work/parsed/2025/nfcu_transactions.summary_by_month.csv
+Inputs:
+  notes/tax/work/parsed/<year>/nfcu_transactions.normalized.csv
 
-Key behaviors:
-- Amount selection precedence: amount_raw -> amount -> recover from description (last resort)
-- Direction inference precedence:
-    direction_guess -> description rules (tight patterns, incl. Zelle GR) -> sign from amount token (if any)
-- Do NOT drop rows merely because direction is unknown.
+Outputs:
+  notes/tax/work/parsed/<year>/nfcu_transactions.cleaned.csv
+  notes/tax/work/parsed/<year>/nfcu_transactions.summary_by_month.csv
+
+Key fixes in this rewrite:
+  1) date repair:
+     - ensure `date` is populated
+     - repair missing posted_date/transaction_date when possible
+     - derive `month` (YYYY-MM)
+  2) glued-header trimming:
+     - remove statement header junk glued into `description`
+       (Average Daily Balance / Items Paid / Statement Period / Access No. etc)
 """
 
 from __future__ import annotations
@@ -20,434 +24,428 @@ from __future__ import annotations
 import argparse
 import csv
 import re
-from collections import defaultdict
 from dataclasses import dataclass
-from decimal import Decimal, InvalidOperation
+from datetime import date as Date
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional, Tuple
+from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
+from collections import defaultdict
+from typing import Dict, Iterable, Optional, Tuple
 
 
-_WS_RE = re.compile(r"\s+")
-_MONEY_RE = re.compile(r"(?<!\d)(\d{1,3}(?:,\d{3})*|\d+)\.\d{2}(?!\d)")
+CUT_MARKERS = [
+    " Average Daily Balance",
+    " Items Paid",
+    " Statement Period",
+    " Access No.",
+    " Statement of Account",
+    " (Continued from previous page)",
+    " Joint Owner(s):",
+]
 
-_DIRECTION_VALUES = {"debit", "credit"}
+# Useful for parsing dates inside descriptions (e.g., "01-03-25", "01/03/25", sometimes "01-03-2025")
+RE_MMDDYY = re.compile(r"\b(\d{2})[/-](\d{2})[/-](\d{2,4})\b")
 
+# File name pattern like: 2025-01-21_STMSSCM.pdf
+RE_FILE_DATE = re.compile(r"\b(\d{4})-(\d{2})-(\d{2})\b")
 
-# ----------------------------
-# Normalizers
-# ----------------------------
-
-def _clean_desc(desc: str) -> str:
-    return _WS_RE.sub(" ", (desc or "").replace("\u00a0", " ")).strip()
-
-
-def _lower(s: str) -> str:
-    return (s or "").strip().lower()
-
-
-def _safe_get(row: Dict[str, str], key: str) -> str:
-    return (row.get(key) or "").strip()
+Q2 = Decimal("0.01")
 
 
-def _normalize_direction(v: str) -> str:
-    s = _lower(v)
-    if s in _DIRECTION_VALUES:
-        return s
-    if s == "dr":
-        return "debit"
-    if s == "cr":
-        return "credit"
-    return ""
+def d2(x: Decimal) -> str:
+    return str(x.quantize(Q2, rounding=ROUND_HALF_UP))
 
 
-def _choose_date(row: Dict[str, str]) -> str:
-    # normalized may use "date" or "statement_date"
-    d = _safe_get(row, "date")
-    if d:
-        return d
-    return _safe_get(row, "statement_date")
-
-
-def _choose_account(row: Dict[str, str]) -> str:
-    a = _safe_get(row, "account")
-    if a:
-        return a
-    return _safe_get(row, "acct")
-
-
-def _month_key(date_str: str) -> str:
-    return date_str[:7] if date_str and len(date_str) >= 7 else ""
-
-
-# ----------------------------
-# Noise filters (keep tight)
-# ----------------------------
-
-def should_drop_row(desc_clean: str) -> bool:
-    """
-    Only drop things we are confident are statement noise.
-    """
-    s = _lower(desc_clean)
+def to_dec(s: str | None) -> Decimal:
+    if s is None:
+        return Decimal("0")
+    s = s.strip()
     if not s:
-        return True
-
-    # Obvious noise headers
-    if s.startswith("beginning balance"):
-        return True
-    if s.startswith("ending balance"):
-        return True
-
-    # Common statement chatter (not transactions)
-    if "average daily balance" in s:
-        return True
-    if "joint owner" in s:
-        return True
-    if "everyday checking" in s:
-        return True
-    if "items paid" in s and "ach paid to" not in s:
-        # prevent false positives on ACH Paid To
-        return True
-
-    return False
-
-
-# ----------------------------
-# Amount parsing
-# ----------------------------
-
-def _parse_amount_token(token: str) -> Tuple[Optional[Decimal], Optional[str]]:
-    """
-    Parse token like:
-      125.00-
-      -125.00
-      (125.00)
-      1,234.56
-    Returns (abs_amount, sign_hint) where sign_hint is debit/credit if detectable.
-    """
-    s = (token or "").strip()
-    if not s:
-        return None, None
-
-    neg = False
-    if s.endswith("-"):
-        neg = True
-        s = s[:-1].strip()
-    if s.startswith("-"):
-        neg = True
-        s = s[1:].strip()
-    if s.startswith("(") and s.endswith(")"):
-        neg = True
-        s = s[1:-1].strip()
-
-    s = s.replace(",", "")
-
+        return Decimal("0")
+    # strip commas / $ just in case
+    s = s.replace(",", "").replace("$", "")
     try:
-        amt = Decimal(s)
+        return Decimal(s)
     except InvalidOperation:
-        return None, None
-
-    if amt == 0:
-        return Decimal("0.00"), None
-
-    return abs(amt), ("debit" if neg else "credit")
+        return Decimal("0")
 
 
-def parse_amount_from_row(row: Dict[str, str], desc_clean: str) -> Tuple[Optional[Decimal], Optional[str], bool]:
-    """
-    Returns (amount, sign_hint, recovered_from_desc)
-    """
-    # 1) amount_raw
-    amount_raw = _safe_get(row, "amount_raw")
-    if amount_raw:
-        amt, sign_hint = _parse_amount_token(amount_raw)
-        if amt is not None:
-            return amt, sign_hint, False
-
-    # 2) amount (some pipelines may already compute this)
-    amount = _safe_get(row, "amount")
-    if amount:
-        amt, sign_hint = _parse_amount_token(amount)
-        if amt is not None:
-            return amt, sign_hint, False
-
-    # 3) recover from description (last resort)
-    tokens = desc_clean.split()
-    last_money = None
-    for t in tokens:
-        tt = t.strip()
-        if tt.endswith("-"):
-            core = tt[:-1]
-            if _MONEY_RE.fullmatch(core):
-                last_money = tt
-        else:
-            if _MONEY_RE.fullmatch(tt):
-                last_money = tt
-
-    if last_money:
-        amt, sign_hint = _parse_amount_token(last_money)
-        if amt is not None:
-            return amt, sign_hint, True
-
-    return None, None, False
-
-
-# ----------------------------
-# Direction inference (tight rules)
-# ----------------------------
-
-def infer_direction_from_desc(desc_clean: str) -> Optional[str]:
-    s = _lower(desc_clean)
-
-    # Zelle (NFCU shorthand we observed)
-    if s.startswith("zelle gr "):
-        return "credit"
-    if s.startswith("zelle to "):
-        return "debit"
-
-    # Card / POS
-    if s.startswith("pos "):
-        return "debit"
-    if s.startswith("debit card "):
-        return "debit"
-    if s.startswith("visa "):
-        return "debit"
-
-    # Transfers
-    if s.startswith("transfer to "):
-        return "debit"
-    if s.startswith("transfer from "):
-        return "credit"
-
-    # ACH
-    if s.startswith("ach paid to "):
-        return "debit"
-    if s.startswith("ach deposit"):
-        return "credit"
-    if s.startswith("ach credit"):
-        return "credit"
-    if s.startswith("ach debit"):
-        return "debit"
-
-    # Adjustments with DR/CR markers
-    if s.startswith("adjustment"):
-        if re.search(r"\bdr\b", s):
-            return "debit"
-        if re.search(r"\bcr\b", s):
-            return "credit"
-
-    # Fees
-    if re.search(r"\bfee\b", s):
-        return "debit"
-
-    # Dividends / interest
-    if "dividend" in s or "interest" in s:
-        return "credit"
-
+def parse_yyyy_mm_dd(s: str | None) -> Optional[str]:
+    if not s:
+        return None
+    s = s.strip()
+    if not s:
+        return None
+    # accept YYYY-MM-DD only
+    if re.fullmatch(r"\d{4}-\d{2}-\d{2}", s):
+        return s
     return None
 
 
-# ----------------------------
-# Core
-# ----------------------------
+def parse_desc_date(desc: str) -> Optional[str]:
+    m = RE_MMDDYY.search(desc or "")
+    if not m:
+        return None
+    mm, dd, yy = m.group(1), m.group(2), m.group(3)
+    if len(yy) == 2:
+        yyyy = f"20{yy}"
+    else:
+        yyyy = yy
+    # basic sanity
+    try:
+        Date(int(yyyy), int(mm), int(dd))
+    except Exception:
+        return None
+    return f"{yyyy}-{mm}-{dd}"
+
+
+def parse_source_file_date(source_file: str | None) -> Optional[str]:
+    if not source_file:
+        return None
+    m = RE_FILE_DATE.search(source_file)
+    if not m:
+        return None
+    yyyy, mm, dd = m.group(1), m.group(2), m.group(3)
+    try:
+        Date(int(yyyy), int(mm), int(dd))
+    except Exception:
+        return None
+    return f"{yyyy}-{mm}-{dd}"
+
+
+def clean_desc(s: str) -> str:
+    s = (s or "").strip()
+    for marker in CUT_MARKERS:
+        i = s.find(marker)
+        if i != -1:
+            s = s[:i].rstrip()
+    # normalize whitespace
+    s = re.sub(r"\s+", " ", s).strip()
+    return s
+
+
+def infer_direction_from_desc(desc: str) -> Optional[str]:
+    d = (desc or "").lower()
+
+    # strongest signals first
+    if "adjustment - dr" in d:
+        return "debit"
+    if "adjustment - cr" in d:
+        return "credit"
+
+    if "pos debit" in d:
+        return "debit"
+    if "pos credit" in d:
+        return "credit"
+
+    if "transfer to" in d:
+        return "debit"
+    if "transfer from" in d:
+        return "credit"
+
+    if "withdrawal" in d:
+        return "debit"
+    if "deposit" in d:
+        return "credit"
+
+    # zelle can be either; leave to amounts unless we have clear text
+    return None
+
+
+def compute_month(yyyy_mm_dd: str) -> str:
+    return yyyy_mm_dd[:7]
+
 
 @dataclass
-class Stats:
+class CleanStats:
     input_rows: int = 0
     clean_rows: int = 0
     dropped_rows: int = 0
     recovered_amounts: int = 0
-    inferred_direction: int = 0
+    inferred_direction_desc: int = 0
     unknown_direction_kept: int = 0
 
 
-def process_rows(rows: Iterable[Dict[str, str]], stats: Stats) -> List[Dict[str, str]]:
-    out: List[Dict[str, str]] = []
+def pick_year_dir(base: Path, year: Optional[int]) -> Path:
+    if year is not None:
+        return base / str(year)
 
-    for r in rows:
-        stats.input_rows += 1
-
-        desc = _clean_desc(_safe_get(r, "description"))
-
-        if should_drop_row(desc):
-            stats.dropped_rows += 1
-            continue
-
-        amt, sign_hint, recovered = parse_amount_from_row(r, desc)
-        if amt is None:
-            # No usable amount = not usable transaction row
-            stats.dropped_rows += 1
-            continue
-
-        if recovered:
-            stats.recovered_amounts += 1
-
-        # Direction precedence:
-        direction = _normalize_direction(_safe_get(r, "direction_guess"))
-
-        if not direction:
-            d2 = infer_direction_from_desc(desc)
-            if d2:
-                direction = d2
-                stats.inferred_direction += 1
-
-        if not direction and sign_hint in _DIRECTION_VALUES:
-            # Only use sign if it truly exists (trailing '-' etc.)
-            direction = sign_hint
-
-        if not direction:
-            # Keep it; downstream can flag it.
-            stats.unknown_direction_kept += 1
-
-        r2 = dict(r)
-        r2["date"] = _choose_date(r)
-        r2["account"] = _choose_account(r)
-        r2["description"] = desc
-        r2["amount"] = f"{amt:.2f}"
-        r2["direction"] = direction
-
-        out.append(r2)
-        stats.clean_rows += 1
-
-    return out
+    # auto-pick most recent year folder that contains nfcu_transactions.normalized.csv
+    candidates = []
+    if base.exists():
+        for p in base.iterdir():
+            if p.is_dir() and re.fullmatch(r"\d{4}", p.name):
+                if (p / "nfcu_transactions.normalized.csv").exists():
+                    candidates.append(p)
+    if not candidates:
+        # fall back to base/2025 if present, else base
+        if (base / "2025" / "nfcu_transactions.normalized.csv").exists():
+            return base / "2025"
+        return base
+    return sorted(candidates, key=lambda p: p.name)[-1]
 
 
-def write_clean_csv(path: Path, rows: List[Dict[str, str]]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    if not rows:
-        with path.open("w", encoding="utf-8", newline="") as f:
-            w = csv.writer(f)
-            w.writerow(["date", "account", "description", "amount", "direction"])
-        return
-
-    preferred = ["date", "account", "description", "amount", "direction"]
-    all_keys = set()
-    for r in rows:
-        all_keys.update(r.keys())
-    tail = [k for k in sorted(all_keys) if k not in preferred]
-    fieldnames = preferred + tail
-
-    with path.open("w", encoding="utf-8", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=fieldnames, extrasaction="ignore")
-        w.writeheader()
-        for r in rows:
-            w.writerow(r)
+def read_normalized_rows(inp: Path) -> Iterable[Dict[str, str]]:
+    with inp.open("r", encoding="utf-8", newline="") as f:
+        r = csv.DictReader(f)
+        for row in r:
+            yield row
 
 
-def write_summary_by_month(path: Path, rows: List[Dict[str, str]]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-
-    agg: Dict[str, Dict[str, Decimal]] = defaultdict(lambda: {
-        "count": Decimal(0),
-        "debit_count": Decimal(0),
-        "credit_count": Decimal(0),
-        "debit_total": Decimal("0.00"),
-        "credit_total": Decimal("0.00"),
-        "net": Decimal("0.00"),
-        "unknown_dir_count": Decimal(0),
-    })
-
-    for r in rows:
-        m = _month_key(_safe_get(r, "date"))
-        if not m:
-            continue
-
-        direction = _normalize_direction(_safe_get(r, "direction"))
-        amt_s = _safe_get(r, "amount")
-        try:
-            amt = Decimal(amt_s) if amt_s else Decimal("0.00")
-        except InvalidOperation:
-            amt = Decimal("0.00")
-
-        a = agg[m]
-        a["count"] += 1
-
-        if direction == "debit":
-            a["debit_count"] += 1
-            a["debit_total"] += amt
-            a["net"] -= amt
-        elif direction == "credit":
-            a["credit_count"] += 1
-            a["credit_total"] += amt
-            a["net"] += amt
-        else:
-            a["unknown_dir_count"] += 1
-
-    with path.open("w", encoding="utf-8", newline="") as f:
-        fieldnames = [
-            "month",
-            "count",
-            "debit_count",
-            "credit_count",
-            "unknown_dir_count",
-            "debit_total",
-            "credit_total",
-            "net",
-        ]
+def write_cleaned(out: Path, rows: Iterable[Dict[str, str]]) -> int:
+    out.parent.mkdir(parents=True, exist_ok=True)
+    fieldnames = [
+        "date",
+        "account",
+        "description",
+        "amount",
+        "direction",
+        "credit",
+        "currency",
+        "debit",
+        "fit_id",
+        "memo",
+        "month",
+        "posted_date",
+        "raw_category",
+        "raw_type",
+        "source_file",
+        "source_row",
+        "transaction_date",
+    ]
+    n = 0
+    with out.open("w", encoding="utf-8", newline="") as f:
         w = csv.DictWriter(f, fieldnames=fieldnames)
         w.writeheader()
-        for month in sorted(agg.keys()):
-            a = agg[month]
-            w.writerow({
+        for row in rows:
+            w.writerow({k: row.get(k, "") for k in fieldnames})
+            n += 1
+    return n
+
+
+def write_summary(summary: Path, cleaned_rows: Iterable[Dict[str, str]]) -> None:
+    agg = defaultdict(lambda: {"count": 0, "debit": Decimal("0"), "credit": Decimal("0")})
+
+    for r in cleaned_rows:
+        m = (r.get("month") or "").strip()
+        if not m:
+            continue
+        agg[m]["count"] += 1
+        agg[m]["debit"] += to_dec(r.get("debit"))
+        agg[m]["credit"] += to_dec(r.get("credit"))
+
+    months = sorted(agg.keys())
+    summary.parent.mkdir(parents=True, exist_ok=True)
+    with summary.open("w", encoding="utf-8", newline="") as f:
+        w = csv.writer(f)
+        w.writerow(["month", "count", "net", "debit", "credit"])
+        for m in months:
+            d = agg[m]["debit"]
+            c = agg[m]["credit"]
+            w.writerow([m, agg[m]["count"], d2(c - d), d2(d), d2(c)])
+
+
+def clean_pipeline(inp: Path, out_clean: Path, out_summary: Path) -> CleanStats:
+    stats = CleanStats()
+    cleaned_rows = []
+
+    for row in read_normalized_rows(inp):
+        stats.input_rows += 1
+
+        account = (row.get("account") or "").strip()
+
+        # Some normalized files use different keys; be tolerant
+        desc_raw = (row.get("description") or row.get("memo") or "").strip()
+        desc = clean_desc(desc_raw)
+
+        memo = (row.get("memo") or "").strip()
+        currency = (row.get("currency") or "USD").strip() or "USD"
+
+        fit_id = (row.get("fit_id") or "").strip()
+        raw_category = (row.get("raw_category") or "").strip()
+        raw_type = (row.get("raw_type") or "").strip()
+
+        source_file = (row.get("source_file") or "").strip()
+        source_row = (row.get("source_row") or "").strip()
+
+        posted_date = parse_yyyy_mm_dd(row.get("posted_date"))
+        transaction_date = parse_yyyy_mm_dd(row.get("transaction_date"))
+
+        # --- date repair ---
+        # Prefer transaction_date, then posted_date, then parse from description, then from source filename.
+        best_date = transaction_date or posted_date
+        if not best_date:
+            best_date = parse_desc_date(desc) or parse_desc_date(desc_raw)
+        if not best_date:
+            best_date = parse_source_file_date(source_file)
+
+        if not posted_date and best_date:
+            posted_date = best_date
+        if not transaction_date and best_date:
+            transaction_date = best_date
+
+        month = (row.get("month") or "").strip()
+        if not month and best_date:
+            month = compute_month(best_date)
+
+        # amounts
+        debit_raw = to_dec(row.get("debit"))
+        credit_raw = to_dec(row.get("credit"))
+
+        # normalize negatives (parser noise): treat magnitude as value; sign handled by direction
+        debit_mag = abs(debit_raw)
+        credit_mag = abs(credit_raw)
+
+        # infer direction primarily from numeric columns
+        direction = (row.get("direction") or "").strip().lower()
+        direction = direction if direction in ("debit", "credit") else ""
+
+        inferred_by_desc = False
+
+        if debit_mag == Decimal("0") and credit_mag == Decimal("0"):
+            # attempt amount recovery (rare): allow "$12.34" in description
+            m_amt = re.search(r"\$?\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]{2})?)\b", desc)
+            if m_amt:
+                amt = to_dec(m_amt.group(1))
+                if amt != Decimal("0"):
+                    stats.recovered_amounts += 1
+                    # direction guess from desc if possible
+                    gd = infer_direction_from_desc(desc)
+                    if gd:
+                        direction = gd
+                        inferred_by_desc = True
+                    # otherwise leave unknown
+                    if direction == "debit":
+                        debit_mag, credit_mag = amt, Decimal("0")
+                    elif direction == "credit":
+                        credit_mag, debit_mag = amt, Decimal("0")
+                    else:
+                        # unknown; keep amount but no side assignment
+                        pass
+
+        # If both sides present, resolve with description hint; else fall back to net sign.
+        if debit_mag != Decimal("0") and credit_mag != Decimal("0"):
+            gd = infer_direction_from_desc(desc)
+            if gd:
+                direction = gd
+                inferred_by_desc = True
+            else:
+                # choose by larger side, else by (credit - debit)
+                if credit_mag > debit_mag:
+                    direction = "credit"
+                elif debit_mag > credit_mag:
+                    direction = "debit"
+                else:
+                    # equal magnitude; ambiguous (likely internal transfer noise)
+                    # keep as debit by default; downstream transfer cancel handles these anyway
+                    direction = direction or "debit"
+
+        # If direction still empty but one side present, set it.
+        if not direction:
+            if debit_mag != Decimal("0") and credit_mag == Decimal("0"):
+                direction = "debit"
+            elif credit_mag != Decimal("0") and debit_mag == Decimal("0"):
+                direction = "credit"
+
+        # If still empty, try desc inference.
+        if not direction:
+            gd = infer_direction_from_desc(desc)
+            if gd:
+                direction = gd
+                inferred_by_desc = True
+
+        if inferred_by_desc:
+            stats.inferred_direction_desc += 1
+
+        # Construct amount and enforce one-sided credit/debit for downstream sanity.
+        if direction == "debit":
+            amount = debit_mag if debit_mag != Decimal("0") else credit_mag
+            debit = amount
+            credit = Decimal("0")
+        elif direction == "credit":
+            amount = credit_mag if credit_mag != Decimal("0") else debit_mag
+            credit = amount
+            debit = Decimal("0")
+        else:
+            # unknown direction: keep magnitudes as-is; amount = max
+            amount = max(debit_mag, credit_mag)
+            debit = debit_mag
+            credit = credit_mag
+            stats.unknown_direction_kept += 1
+
+        # Drop true zero rows
+        if amount == Decimal("0"):
+            stats.dropped_rows += 1
+            continue
+
+        # Final description must not be empty; if it is, drop
+        if not desc:
+            stats.dropped_rows += 1
+            continue
+
+        cleaned_rows.append(
+            {
+                "date": best_date or "",
+                "account": account,
+                "description": desc,
+                "amount": d2(amount),
+                "direction": direction or "",
+                "credit": d2(credit),
+                "currency": currency,
+                "debit": d2(debit),
+                "fit_id": fit_id,
+                "memo": memo,
                 "month": month,
-                "count": int(a["count"]),
-                "debit_count": int(a["debit_count"]),
-                "credit_count": int(a["credit_count"]),
-                "unknown_dir_count": int(a["unknown_dir_count"]),
-                "debit_total": f"{a['debit_total']:.2f}",
-                "credit_total": f"{a['credit_total']:.2f}",
-                "net": f"{a['net']:.2f}",
-            })
+                "posted_date": posted_date or "",
+                "raw_category": raw_category,
+                "raw_type": raw_type,
+                "source_file": source_file,
+                "source_row": source_row,
+                "transaction_date": transaction_date or "",
+            }
+        )
+
+    stats.clean_rows = len(cleaned_rows)
+
+    # write cleaned
+    write_cleaned(out_clean, cleaned_rows)
+
+    # write summary (read back cleaned to ensure we summarize exactly what we wrote)
+    with out_clean.open("r", encoding="utf-8", newline="") as f:
+        cleaned_iter = csv.DictReader(f)
+        write_summary(out_summary, cleaned_iter)
+
+    return stats
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser()
-    ap.add_argument(
-        "--in",
-        dest="in_path",
-        default="notes/tax/work/parsed/2025/nfcu_transactions.normalized.csv",
-        help="Input normalized CSV",
-    )
-    ap.add_argument(
-        "--out",
-        dest="out_path",
-        default="notes/tax/work/parsed/2025/nfcu_transactions.cleaned.csv",
-        help="Output cleaned CSV",
-    )
-    ap.add_argument(
-        "--summary",
-        dest="summary_path",
-        default="notes/tax/work/parsed/2025/nfcu_transactions.summary_by_month.csv",
-        help="Output summary-by-month CSV",
-    )
+    ap = argparse.ArgumentParser(description="NFCU Step 10: clean + summarize (rewrite)")
+    ap.add_argument("--base", default="notes/tax/work/parsed", help="Base parsed directory (default: notes/tax/work/parsed)")
+    ap.add_argument("--year", type=int, default=None, help="Year folder to use (e.g., 2025). Default: auto-detect latest.")
     args = ap.parse_args()
 
-    in_path = Path(args.in_path)
-    out_path = Path(args.out_path)
-    summary_path = Path(args.summary_path)
+    base = Path(args.base)
+    year_dir = pick_year_dir(base, args.year)
+
+    inp = year_dir / "nfcu_transactions.normalized.csv"
+    out_clean = year_dir / "nfcu_transactions.cleaned.csv"
+    out_summary = year_dir / "nfcu_transactions.summary_by_month.csv"
+
+    if not inp.exists():
+        print("ERROR: missing input:", inp)
+        return 2
 
     print("---- Step 10: Clean + Summarize ----")
-    print(f"IN : {in_path}")
-    print(f"OUT: {out_path}")
-    print(f"OUT: {summary_path}")
+    print(f"IN : {inp}")
+    print(f"OUT: {out_clean}")
+    print(f"OUT: {out_summary}")
 
-    if not in_path.exists():
-        raise SystemExit(f"Input not found: {in_path}")
-
-    with in_path.open("r", encoding="utf-8", newline="") as f:
-        reader = csv.DictReader(f)
-        rows_in = list(reader)
-
-    stats = Stats()
-    rows_out = process_rows(rows_in, stats)
-
-    write_clean_csv(out_path, rows_out)
-    write_summary_by_month(summary_path, rows_out)
+    stats = clean_pipeline(inp, out_clean, out_summary)
 
     print(f"Input rows: {stats.input_rows}")
     print(f"Clean rows: {stats.clean_rows}")
     print(f"Dropped   : {stats.dropped_rows}")
     print(f"Recovered amounts from description: {stats.recovered_amounts}")
-    print(f"Inferred direction (desc rules): {stats.inferred_direction}")
+    print(f"Inferred direction (desc rules): {stats.inferred_direction_desc}")
     print(f"Kept with unknown direction: {stats.unknown_direction_kept}")
 
     return 0
