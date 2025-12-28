@@ -1,0 +1,22 @@
+{
+  "year": 2025,
+  "sources": [
+    {
+      "type": "bank_statement",
+      "provider": "Chase",
+      "account_hint": "Checking1234",
+      "files_glob": "notes/tax/intake/bank/2025/*.pdf"
+    },
+    {
+      "type": "insurance_spending",
+      "provider": "BCBSND",
+      "files_glob": "notes/tax/intake/insurance/2025/BCBSND/*.pdf"
+    },
+    {
+      "type": "hsa_fsa_statement",
+      "provider": "Optum",
+      "account_hint": "HSA",
+      "files_glob": "notes/tax/intake/hsa_fsa/2025/Optum/*.pdf"
+    }
+  ]
+}

@@ -284,3 +284,9 @@ out/
 .venv/
 .venv_*/
 .venv*/
+
+# Local notes / private prompt library
+notes/prompt_library/
+
+# Avoid duplicate root-level tool scripts
+tax_extract_text.py
