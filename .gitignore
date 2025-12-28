@@ -271,3 +271,16 @@ notes/tax/
 tax_intake/
 **/*.ofx
 **/*.qfx
+
+# PRIVATE IMPORTS (never commit)
+notes/imports_private/
+notes/_inbox/
+notes/media_in/
+
+# Build outputs (optional to commit; safest is ignore)
+out/
+
+# Local virtualenvs
+.venv/
+.venv_*/
+.venv*/
