@@ -95,3 +95,12 @@ scripts/
 
 # --- Local-only scripts ---
 scripts/_local/
+
+# --- Transcribe scratch (generated) ---
+out/transcripts/.scratch_transcribe/
+
+# --- Local media inputs (raw audio/video) ---
+notes/media_in/
+
+# --- Extra venvs (tax) ---
+.venv_tax/
