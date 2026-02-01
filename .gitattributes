@@ -1,9 +1,12 @@
-# Normalize text files to LF in repo
-* text=auto
+# Normalize text files and prefer LF in repo
+* text=auto eol=lf
 
-*.py  text eol=lf
-*.sh  text eol=lf
-*.md  text eol=lf
-*.json text eol=lf
-*.yml text eol=lf
-*.yaml text eol=lf
+# Shell scripts must be LF
+*.sh text eol=lf
+
+# Python files LF
+*.py text eol=lf
+
+# Windows command files can stay CRLF if you add any later
+*.bat text eol=crlf
+*.cmd text eol=crlf
