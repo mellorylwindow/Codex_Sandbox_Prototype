@@ -65,3 +65,27 @@ tax_intake/
 
 # --- Scribe workspace (often contains local runs/artifacts) ---
 scribe/
+
+# --- Python venvs ---
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# --- Private imports / takeouts / archives (never commit) ---
+notes/imports_private/
+private/
+
+# --- Common extracted/generated work dirs ---
+notes/**/work/
+notes/**/images_in/
+notes/**/images_ingested/
+notes/**/inbox/
+notes/**/intake/
+notes/**/extracted_text/
+
+# --- Browser sandbox duplicates ---
+**/~BROMIUM/
+
+# --- Accidental Windows-path filenames (bad exports) ---
+C*/
