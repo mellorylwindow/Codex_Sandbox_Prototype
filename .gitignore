@@ -47,3 +47,21 @@ notes/**/Takeout/
 
 # --- Local-only scratch ---
 private/
+
+# --- Notes workspace (local / generated) ---
+notes/_inbox/
+notes/prompt_library/
+notes/tax/images_in/
+notes/tax/inbox/
+notes/tax/intake/
+notes/tax/work/
+notes/tiktok/images_in/
+notes/tiktok/images_ingested/
+notes/tiktok/recording_picks/
+notes/tiktok/library_index.json
+
+# --- Private tax + doc intake ---
+tax_intake/
+
+# --- Scribe workspace (often contains local runs/artifacts) ---
+scribe/
