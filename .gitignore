@@ -44,3 +44,6 @@ notes/**/Takeout/
 
 # --- "oops I pasted a Windows path" files in repo root ---
 /C:*/
+
+# --- Local-only scratch ---
+private/
