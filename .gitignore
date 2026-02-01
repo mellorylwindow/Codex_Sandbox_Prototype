@@ -92,3 +92,6 @@ C*/
 
 # --- Local scripts (not part of repo) ---
 scripts/
+
+# --- Local-only scripts ---
+scripts/_local/
