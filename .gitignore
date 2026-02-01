@@ -89,3 +89,6 @@ notes/**/extracted_text/
 
 # --- Accidental Windows-path filenames (bad exports) ---
 C*/
+
+# --- Local scripts (not part of repo) ---
+scripts/
